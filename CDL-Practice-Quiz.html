@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Free CDL practice quiz for air brakes, combination vehicles and general knowledge. Works offline. No ads, no accounts, no tracking.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>CDL Practice Quiz</title>
 <style>
 /* Colours are tokens so light and dark stay consistent. data-theme on <html> picks the set. */
@@ -303,7 +303,21 @@ label.inline select { width: auto; }
 .rule-field { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .rule-field input { width: 100%; padding: 6px 8px; }
 @media (max-width: 560px) { .rules-row { grid-template-columns: 1fr; } }
+
+/* reports and install */
+.report-box { margin-top: 14px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.report-box label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 14px; }
+.report-box textarea { width: 100%; font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; resize: vertical; }
+.report-box #report-message { min-height: 1.2em; margin: 8px 0 0; }
+.report-row { border-top: 1px solid var(--line); padding: 12px 0; }
+.report-row h3 { font-size: 16px; margin: 4px 0 6px; }
+.report-row p { margin: 4px 0; }
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#15171a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CDL Quiz">
 </head>
 <body>
 
@@ -410,6 +424,7 @@ label.inline select { width: auto; }
       </div>
       <div class="quiz-top-right">
         <span id="timer" class="muted"></span>
+        <button id="report-btn" type="button" class="ghost" aria-expanded="false" aria-controls="report-box">Report a problem</button>
         <button id="flag" type="button" class="ghost" aria-pressed="false">Flag</button>
         <button id="bookmark" type="button" class="ghost" aria-pressed="false">Bookmark</button>
       </div>
@@ -419,6 +434,13 @@ label.inline select { width: auto; }
     <h2 id="question" class="question" tabindex="-1"></h2>
     <div id="choices" class="choices"></div>
     <p id="feedback" class="feedback" aria-live="polite"></p>
+
+    <div id="report-box" class="report-box" hidden>
+      <label for="report-note">What looks wrong with this question? (optional)</label>
+      <textarea id="report-note" rows="3" maxlength="500"></textarea>
+      <div class="button-row"><button id="report-save" type="button">Save report</button></div>
+      <p id="report-message" class="small" role="status"></p>
+    </div>
 
     <div class="nav">
       <button id="prev" type="button">Previous</button>
@@ -501,6 +523,12 @@ label.inline select { width: auto; }
     <div class="panel">
       <h2>Recent tests</h2>
       <div id="recent"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Reported questions</h2>
+      <p class="muted small">Questions you reported from the quiz. They stay on this device. To send them to the maintainer, save a backup file and attach it to a GitHub issue.</p>
+      <div id="reports"></div>
     </div>
 
     <div class="panel">
@@ -999,7 +1027,7 @@ const Store = (function () {
   let data = blank();
 
   function blank() {
-    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null };
+    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null, reports: [] };
   }
 
   function count(value) {
@@ -1058,6 +1086,10 @@ const Store = (function () {
     out.session = validSession(raw.session) ? raw.session : null;
     out.theme = raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : null;
     out.rules = raw.rules ? sanitizeRules(raw.rules) : null;
+    out.reports = (Array.isArray(raw.reports) ? raw.reports : [])
+      .filter(r => r && byId.has(r.id) && Number.isFinite(r.at))
+      .map(r => ({ id: r.id, note: typeof r.note === 'string' ? r.note.slice(0, 500) : '', at: r.at }))
+      .slice(-200);
     return out;
   }
 
@@ -1134,6 +1166,20 @@ const Store = (function () {
 
   function session() { return data.session; }
 
+  // ----- reports (questions the user says look wrong or unclear) -----
+
+  function reports() { return data.reports.slice(); }
+
+  function addReport(id, note) {
+    data.reports = [...data.reports, { id, note: note.slice(0, 500), at: Date.now() }].slice(-200);
+    save();
+  }
+
+  function removeReport(at) {
+    data.reports = data.reports.filter(r => r.at !== at);
+    save();
+  }
+
   // ----- test rules (questions, pass mark, time limit per subject) -----
 
   function rules() {
@@ -1179,6 +1225,7 @@ const Store = (function () {
 
   return {
     load, statsFor, recordAnswer, isDue, dueCount, isSaved, toggleSaved,
+    addReport, removeReport, reports,
     addAttempt, setSession, session, rules, setRules, resetRules,
     theme, setTheme, reset, exportText, importText,
     get attempts() { return data.attempts; },
@@ -1427,6 +1474,19 @@ const Store = (function () {
     renderRulesForm();
     renderMockList();
     $('rules-message').textContent = 'Back to the typical layout.';
+  }
+
+  function toggleReportBox() {
+    const box = $('report-box');
+    box.hidden = !box.hidden;
+    $('report-btn').setAttribute('aria-expanded', String(!box.hidden));
+    if (!box.hidden) $('report-note').focus();
+  }
+
+  function saveReport() {
+    Store.addReport(current().id, $('report-note').value.trim());
+    $('report-note').value = '';
+    $('report-message').textContent = 'Saved. You can see it under Progress, in Reported questions.';
   }
 
   function matchingQuestions() {
@@ -1842,7 +1902,30 @@ const Store = (function () {
 
   // ---------- progress and backup ----------
 
+  function renderReports() {
+    const wrap = $('reports');
+    wrap.replaceChildren();
+    const list = Store.reports();
+    if (!list.length) {
+      wrap.append(el('p', 'muted', 'No reports yet.'));
+      return;
+    }
+    list.slice().reverse().forEach(r => {
+      const q = byId.get(r.id);
+      const row = el('div', 'report-row');
+      row.append(el('p', 'muted small', q.subject + ', #' + q.number));
+      row.append(el('h3', null, q.question));
+      if (r.note) row.append(el('p', null, 'Note: ' + r.note));
+      const remove = el('button', null, 'Remove');
+      remove.type = 'button';
+      remove.addEventListener('click', () => { Store.removeReport(r.at); renderStats(); });
+      row.append(remove);
+      wrap.append(row);
+    });
+  }
+
   function renderStats() {
+    renderReports();
     const answeredTotal = QUESTIONS.filter(q => Store.statsFor(q.id).last).length;
     let right = 0, wrong = 0;
     QUESTIONS.forEach(q => { const s = Store.statsFor(q.id); right += s.right; wrong += s.wrong; });
@@ -2000,6 +2083,8 @@ const Store = (function () {
   $('export').addEventListener('click', exportBackup);
   $('import-button').addEventListener('click', () => $('import').click());
   $('rules-reset').addEventListener('click', resetRules);
+  $('report-btn').addEventListener('click', toggleReportBox);
+  $('report-save').addEventListener('click', saveReport);
   $('import').addEventListener('change', e => importBackup(e.target.files[0]));
   $('reset').addEventListener('click', resetAll);
 
@@ -2047,6 +2132,12 @@ const Store = (function () {
   });
 
   // ---------- start ----------
+
+  // Offline support needs a secure address (https or localhost). Browsers ignore it on a file.
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
 
   Store.load();
   session = Store.session();

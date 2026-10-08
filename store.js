@@ -21,7 +21,7 @@ const Store = (function () {
   let data = blank();
 
   function blank() {
-    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null };
+    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null, reports: [] };
   }
 
   function count(value) {
@@ -80,6 +80,10 @@ const Store = (function () {
     out.session = validSession(raw.session) ? raw.session : null;
     out.theme = raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : null;
     out.rules = raw.rules ? sanitizeRules(raw.rules) : null;
+    out.reports = (Array.isArray(raw.reports) ? raw.reports : [])
+      .filter(r => r && byId.has(r.id) && Number.isFinite(r.at))
+      .map(r => ({ id: r.id, note: typeof r.note === 'string' ? r.note.slice(0, 500) : '', at: r.at }))
+      .slice(-200);
     return out;
   }
 
@@ -156,6 +160,20 @@ const Store = (function () {
 
   function session() { return data.session; }
 
+  // ----- reports (questions the user says look wrong or unclear) -----
+
+  function reports() { return data.reports.slice(); }
+
+  function addReport(id, note) {
+    data.reports = [...data.reports, { id, note: note.slice(0, 500), at: Date.now() }].slice(-200);
+    save();
+  }
+
+  function removeReport(at) {
+    data.reports = data.reports.filter(r => r.at !== at);
+    save();
+  }
+
   // ----- test rules (questions, pass mark, time limit per subject) -----
 
   function rules() {
@@ -201,6 +219,7 @@ const Store = (function () {
 
   return {
     load, statsFor, recordAnswer, isDue, dueCount, isSaved, toggleSaved,
+    addReport, removeReport, reports,
     addAttempt, setSession, session, rules, setRules, resetRules,
     theme, setTheme, reset, exportText, importText,
     get attempts() { return data.attempts; },

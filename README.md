@@ -7,6 +7,17 @@ It covers **air brakes**, **combination vehicles**, and **general knowledge**, w
 - It works offline after you download it.
 - No ads, no sign-up, no tracking.
 
+## Use it on a phone
+
+Open the quiz in your phone browser at **https://kdrcoding.github.io/cdl-practice-quiz/**.
+
+- **iPhone (Safari):** tap the Share button, then **Add to Home Screen**.
+- **Android (Chrome):** tap the three dots menu, then **Install app** or **Add to Home screen**.
+
+After that it opens like an app from your home screen. Once it has loaded one time, it also works with no signal.
+
+Your progress is saved on the phone. It is not shared with your computer unless you save a backup file and load it on the other device.
+
 ## Screenshots
 
 ![Practice home with the three subjects](docs/screenshot-home.png)
@@ -29,6 +40,7 @@ That's it. You can use the quiz without installing anything.
 | Practise with a custom set of questions | **Choose questions** on a card, or the form on the Practice page |
 | Take a timed test like the real exam | **Mock test** on a card, or the list under "Mock tests" |
 | Find a question or check an answer | **Questions** tab (search, filter, and "Show answers") |
+| Tell the maintainer a question looks wrong | **Report a problem** button during a test, then **Progress**, Reported questions |
 | Review what I am about to forget | **Which questions** on the Practice page, choose **Due for review now** |
 | See how well I'm doing | **Progress** tab |
 | Keep my progress safe | **Progress** tab, then **Save backup file** |
@@ -92,6 +104,11 @@ Click the **Light mode** or **Dark mode** button at the top right.
 If you spot a mistake, please open an issue on GitHub.
 
 ## For developers
+
+### Offline and install
+
+`sw.js` caches the app files so it works offline. When you change any app file, raise `CACHE_NAME` in `sw.js`, so phones load the new version. `manifest.webmanifest` and the files in `icons/` let the app install to a home screen.
+
 
 ### Files
 

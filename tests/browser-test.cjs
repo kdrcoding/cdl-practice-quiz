@@ -86,6 +86,15 @@ async function answerAll(page, count, choice) {
     await page.keyboard.press('Enter');
     check(await page.locator('.choice.locked').count() === 3, 'Enter on a focused answer picks it');
     check(await page.locator('#position').textContent() === 'Question 4 of 64', 'picking an answer with Enter does not skip the question');
+    // Report a problem with a question, then find it on the Progress page
+    await page.locator('#report-btn').click();
+    await page.locator('#report-note').fill('Test report note');
+    await page.locator('#report-save').click();
+    check((await page.locator('#report-message').textContent()).includes('Saved'), 'a question can be reported with a note');
+    await page.locator('#report-btn').click();
+    await page.locator('.tabs button[data-nav="stats"]').click();
+    check((await page.locator('#reports .report-row').count()) >= 1, 'reported question shows on the Progress page');
+    await page.locator('.tabs button[data-nav="home"]').click();
     await page.locator('.tabs button[data-nav="browse"]').click();
     await page.keyboard.press('/');
     check(await page.evaluate(() => document.activeElement.id) === 'search', '/ jumps to search on the Questions page');
@@ -232,6 +241,38 @@ async function answerAll(page, count, choice) {
     check(errors.length === 0, 'no console or page errors' + (errors.length ? ': ' + errors.join('; ') : ''));
     await context.close();
   }
+
+  // Installable and offline: serve the folder over http, then open the app with no connection
+  const http = require('http');
+  const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml' };
+  const server = http.createServer((req, res) => {
+    const urlPath = decodeURIComponent(req.url.split('?')[0]);
+    const file = path.join(root, urlPath === '/' ? 'index.html' : urlPath);
+    if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
+    fs.createReadStream(file).pipe(res);
+  });
+  await new Promise(resolve => server.listen(8123, resolve));
+  const webContext = await browser.newContext();
+  const web = await webContext.newPage();
+  const webErrors = [];
+  web.on('pageerror', e => webErrors.push(e.message));
+  await web.goto('http://localhost:8123/index.html');
+  await web.evaluate(async () => { await navigator.serviceWorker.ready; return true; });
+  await web.reload();
+  await web.evaluate(async () => { await navigator.serviceWorker.ready; return true; });
+  check(await web.evaluate(() => !!navigator.serviceWorker.controller), 'service worker controls the page (cached for offline use)');
+  check(await web.evaluate(() => !!document.querySelector('link[rel="manifest"]')), 'manifest is linked, so the app can be installed');
+  await webContext.setOffline(true);
+  await web.reload();
+  check(await web.locator('.subject-card').count() === 3, 'the app opens with no connection');
+  check(webErrors.length === 0, 'no page errors on the web version' + (webErrors.length ? ': ' + webErrors.join('; ') : ''));
+  await webContext.close();
+  server.close();
   fs.rmSync(backupFile, { force: true });
   await browser.close();
   console.log('All ' + passed + ' browser checks passed.');

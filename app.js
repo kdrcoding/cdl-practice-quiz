@@ -240,6 +240,19 @@
     $('rules-message').textContent = 'Back to the typical layout.';
   }
 
+  function toggleReportBox() {
+    const box = $('report-box');
+    box.hidden = !box.hidden;
+    $('report-btn').setAttribute('aria-expanded', String(!box.hidden));
+    if (!box.hidden) $('report-note').focus();
+  }
+
+  function saveReport() {
+    Store.addReport(current().id, $('report-note').value.trim());
+    $('report-note').value = '';
+    $('report-message').textContent = 'Saved. You can see it under Progress, in Reported questions.';
+  }
+
   function matchingQuestions() {
     const subject = $('subject').value;
     const which = $('pool').value;
@@ -653,7 +666,30 @@
 
   // ---------- progress and backup ----------
 
+  function renderReports() {
+    const wrap = $('reports');
+    wrap.replaceChildren();
+    const list = Store.reports();
+    if (!list.length) {
+      wrap.append(el('p', 'muted', 'No reports yet.'));
+      return;
+    }
+    list.slice().reverse().forEach(r => {
+      const q = byId.get(r.id);
+      const row = el('div', 'report-row');
+      row.append(el('p', 'muted small', q.subject + ', #' + q.number));
+      row.append(el('h3', null, q.question));
+      if (r.note) row.append(el('p', null, 'Note: ' + r.note));
+      const remove = el('button', null, 'Remove');
+      remove.type = 'button';
+      remove.addEventListener('click', () => { Store.removeReport(r.at); renderStats(); });
+      row.append(remove);
+      wrap.append(row);
+    });
+  }
+
   function renderStats() {
+    renderReports();
     const answeredTotal = QUESTIONS.filter(q => Store.statsFor(q.id).last).length;
     let right = 0, wrong = 0;
     QUESTIONS.forEach(q => { const s = Store.statsFor(q.id); right += s.right; wrong += s.wrong; });
@@ -811,6 +847,8 @@
   $('export').addEventListener('click', exportBackup);
   $('import-button').addEventListener('click', () => $('import').click());
   $('rules-reset').addEventListener('click', resetRules);
+  $('report-btn').addEventListener('click', toggleReportBox);
+  $('report-save').addEventListener('click', saveReport);
   $('import').addEventListener('change', e => importBackup(e.target.files[0]));
   $('reset').addEventListener('click', resetAll);
 
@@ -858,6 +896,12 @@
   });
 
   // ---------- start ----------
+
+  // Offline support needs a secure address (https or localhost). Browsers ignore it on a file.
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
 
   Store.load();
   session = Store.session();
