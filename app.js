@@ -306,6 +306,7 @@
     if (session.mode === 'study' && isScored(q)) Store.recordAnswer(q.id, i === q.answer);
     Store.setSession(session);
     render();
+    $('next').focus();
   }
 
   function toggleFlag() {
@@ -732,19 +733,50 @@
   $('browse-status').addEventListener('change', renderBrowse);
 
   $('export').addEventListener('click', exportBackup);
+  $('import-button').addEventListener('click', () => $('import').click());
   $('import').addEventListener('change', e => importBackup(e.target.files[0]));
   $('reset').addEventListener('click', resetAll);
 
+  // Keyboard: 1, 2, 3 answer. Enter or Space go to the next question.
+  // Arrows move between questions. F flags. S bookmarks. / searches on the Questions page.
   document.addEventListener('keydown', e => {
-    if (view !== 'quiz' || !session || session.finished) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.target instanceof Element && e.target.closest('input, select, textarea')) return;
+    const target = e.target instanceof Element ? e.target : null;
+    if (target && target.closest('input, select, textarea')) return;
+
+    if (view === 'browse' && e.key === '/') {
+      e.preventDefault();
+      $('search').focus();
+      return;
+    }
+    if (view !== 'quiz' || !session || session.finished) return;
+
+    // On a focused button, Enter and Space already press that button, so only act when focus is elsewhere.
+    const onControl = !!(target && target.closest('button, a'));
     switch (e.key) {
-      case '1': case '2': case '3': choose(Number(e.key) - 1); break;
-      case 'ArrowRight': next(); break;
-      case 'ArrowLeft': previous(); break;
-      case 'f': case 'F': toggleFlag(); break;
-      case 's': case 'S': toggleBookmark(); break;
+      case '1': case '2': case '3':
+        choose(Number(e.key) - 1);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        next();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        previous();
+        break;
+      case 'Enter':
+      case ' ':
+        if (onControl) break;
+        e.preventDefault();
+        next();
+        break;
+      case 'f': case 'F':
+        toggleFlag();
+        break;
+      case 's': case 'S':
+        toggleBookmark();
+        break;
     }
   });
 

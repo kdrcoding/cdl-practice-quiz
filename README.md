@@ -49,15 +49,19 @@ Mock tests are timed and use a typical layout:
 
 You pass with **80% of the scored questions**. Test layouts and pass marks vary by state, so check your state's rules.
 
-### Keyboard shortcuts during a test
+### Keyboard shortcuts
+
+You can use the whole app without a mouse. Press **Tab** to move between buttons and **Enter** or **Space** to press the one that has focus.
 
 | Key | Action |
 | --- | --- |
 | 1, 2, 3 | Choose answer A, B, or C |
+| Enter or Space | Go to the next question (on the last question, see results) |
 | Right arrow | Next question |
 | Left arrow | Previous question |
 | F | Flag or unflag the question (to review it later) |
 | S | Bookmark or unbookmark the question |
+| / | On the Questions page, jump to the search box |
 
 You can also click the numbered boxes under a test to jump to any question.
 

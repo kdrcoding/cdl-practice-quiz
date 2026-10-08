@@ -89,7 +89,7 @@
         <ul class="plain small">
           <li>Everything runs in this browser. No ads, no accounts, no tracking.</li>
           <li>Progress is saved on this device. Save a backup from the Progress page.</li>
-          <li>Keys during a test: 1, 2, 3 answer. Arrow keys move. F flags. S bookmarks.</li>
+          <li>Keyboard only is fine: Tab moves between buttons. In a test, 1, 2, 3 answer, Enter or Space continues, arrows move, F flags, S bookmarks. On the Questions page, / starts a search.</li>
           <li>Answers follow the ones marked in the study material.</li>
         </ul>
       </div>
@@ -125,7 +125,7 @@
     </div>
 
     <nav id="grid" class="grid" aria-label="Questions in this test"></nav>
-    <p class="hint muted small">Keys: 1, 2, 3 answer. Left and right arrows move. F flags. S bookmarks.</p>
+    <p class="hint muted small">Keys: 1, 2, 3 answer. Enter or Space goes to the next question. Left and right arrows move. F flags. S bookmarks.</p>
   </section>
 
   <!-- Results -->
@@ -203,7 +203,7 @@
       <p class="muted small">Stored only in this browser. Save a backup file to keep it or to move it to another computer.</p>
       <div class="button-row">
         <button id="export" type="button">Save backup file</button>
-        <label class="button-like" for="import">Load backup file</label>
+        <button id="import-button" type="button">Load backup file</button>
         <input id="import" type="file" accept="application/json,.json" hidden>
         <button id="reset" type="button" class="danger">Erase all progress</button>
       </div>

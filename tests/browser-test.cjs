@@ -61,6 +61,25 @@ async function answerAll(page, count, choice) {
     await page.keyboard.press('1');
     await page.keyboard.press('ArrowRight');
     check(await page.locator('#position').textContent() === 'Question 2 of 64', 'arrow key moves to question 2 in order');
+
+    // Keyboard only: answer with a number, continue with Enter, then Space, then a focused answer must not skip
+    await page.keyboard.press('2');
+    check(await page.evaluate(() => document.activeElement.id) === 'next', 'after answering, focus moves to Next');
+    await page.keyboard.press('Enter');
+    check(await page.locator('#position').textContent() === 'Question 3 of 64', 'Enter continues to question 3');
+    await page.keyboard.press(' ');
+    check(await page.locator('#position').textContent() === 'Question 4 of 64', 'Space continues to question 4');
+    await page.locator('.choice').nth(0).focus();
+    await page.keyboard.press('Enter');
+    check(await page.locator('.choice.locked').count() === 3, 'Enter on a focused answer picks it');
+    check(await page.locator('#position').textContent() === 'Question 4 of 64', 'picking an answer with Enter does not skip the question');
+    await page.locator('.tabs button[data-nav="browse"]').click();
+    await page.keyboard.press('/');
+    check(await page.evaluate(() => document.activeElement.id) === 'search', '/ jumps to search on the Questions page');
+    await page.locator('.tabs button[data-nav="stats"]').click();
+    await page.locator('#import-button').focus();
+    check(await page.evaluate(() => document.activeElement.id) === 'import-button', 'Load backup file can be reached by keyboard');
+
     await page.locator('.tabs button[data-nav="home"]').click();
 
     // Study practice: 3 General Knowledge questions in order
