@@ -241,9 +241,13 @@
       next[input.dataset.subject][input.dataset.field] = Number(input.value);
     });
     Store.setRules(next);
+    const saved = Store.rules();
+    const reset = Object.keys(saved).some(name => ['count', 'pass', 'minutes'].some(field => saved[name][field] !== next[name][field]));
     renderRulesForm();
     renderMockList();
-    $('rules-message').textContent = 'Saved. Mock tests now use these rules.';
+    $('rules-message').textContent = reset
+      ? 'Some values were outside the allowed range, so the typical value was used.'
+      : 'Saved. Mock tests now use these rules.';
   }
 
   function resetRules() {
