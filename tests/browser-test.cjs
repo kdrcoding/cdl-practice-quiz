@@ -242,6 +242,27 @@ async function answerAll(page, count, choice) {
     await context.close();
   }
 
+  // Explanation: shown after an answer when the question has one, and hidden otherwise
+  {
+    const ctx = await browser.newContext();
+    const ex = await ctx.newPage();
+    const exErrors = [];
+    ex.on('pageerror', e => exErrors.push(e.message));
+    await ex.goto(pathToFileURL(path.join(root, 'index.html')).href);
+    await ex.evaluate(() => localStorage.clear());
+    await ex.reload();
+    await ex.evaluate(() => { QUESTIONS.find(q => q.id === 'general-knowledge-1').why = 'Test explanation for the check.'; });
+    await ex.locator('.subject-card').nth(2).getByRole('button', { name: 'Study one by one' }).click();
+    check(await ex.locator('#why').isHidden(), 'no explanation box before answering');
+    await ex.keyboard.press('1');
+    check((await ex.locator('#why').textContent()).includes('Test explanation'), 'explanation shows after answering');
+    await ex.keyboard.press('ArrowRight');
+    await ex.keyboard.press('1');
+    check(await ex.locator('#why').isHidden(), 'no explanation box for a question without one');
+    check(exErrors.length === 0, 'no page errors in explanations');
+    await ctx.close();
+  }
+
   // Installable and offline: serve the folder over http, then open the app with no connection
   const http = require('http');
   const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml' };
