@@ -179,7 +179,7 @@
       const row = el('div', 'mock-row');
       const text = el('div');
       text.append(el('strong', null, s.name), el('div', 'muted small',
-        plural(s.mock, 'question') + (last ? ', last score ' + Math.round(last.right / last.scored * 100) + '%' : '')));
+        plural(s.mock, 'question') + (last && last.scored ? ', last score ' + Math.round(last.right / last.scored * 100) + '%' : '')));
       const button = el('button', null, 'Start');
       button.type = 'button';
       button.addEventListener('click', () => startMock(s));
@@ -671,6 +671,7 @@
       try {
         Store.importText(String(reader.result));
         session = Store.session();
+        if (session) session.runStart = null;
         renderStats();
         setDataMessage('Backup loaded. Your progress is restored.');
       } catch (e) {

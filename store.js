@@ -87,10 +87,6 @@ const Store = (function () {
     save();
   }
 
-  function missedIds() {
-    return Object.keys(data.questions).filter(id => data.questions[id].last === 'wrong');
-  }
-
   function isSaved(id) { return data.saved.includes(id); }
 
   function toggleSaved(id) {
@@ -140,7 +136,7 @@ const Store = (function () {
   }
 
   return {
-    load, statsFor, recordAnswer, missedIds, isSaved, toggleSaved,
+    load, statsFor, recordAnswer, isSaved, toggleSaved,
     addAttempt, setSession, session, theme, setTheme, reset, exportText, importText,
     get attempts() { return data.attempts; },
     get savedIds() { return data.saved; },
