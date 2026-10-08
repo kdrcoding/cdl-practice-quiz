@@ -57,6 +57,10 @@ node tests/browser-test.cjs     # full browser test (needs Playwright; set PLAYW
   - "When coupling, the proper position of the fifth wheel is" (`combination-vehicles-60` and `combination-vehicles-76`)
   - "Off-ramp that curves downhill" (`general-knowledge-76` and `general-knowledge-132`)
 
+## License
+
+MIT. See `LICENSE`. This covers the code. The question text comes from the study files it was built from.
+
 ## Disclaimer
 
 This is practice material, not an official test. Check your state's current CDL manual for the rules that apply to you.
