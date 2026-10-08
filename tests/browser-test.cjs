@@ -53,6 +53,16 @@ async function answerAll(page, count, choice) {
     check(await page.locator('#mock-list button').count() === 3, 'home offers three mock tests');
     check(await page.locator('#subject option').count() === 4, 'subject list has all + 3 subjects');
 
+    // Study one subject one by one, in file order
+    await page.locator('.subject-card').nth(0).getByRole('button', { name: 'Study one by one' }).click();
+    check(await page.locator('#position').textContent() === 'Question 1 of 64', 'study one by one starts Air Brakes at question 1 of 64');
+    check((await page.locator('#topic').textContent()).startsWith('Air Brakes, #1'), 'study one by one follows the study-file order');
+    check(await page.locator('#progress').evaluate(el => el.style.width) === '0%', 'progress starts at zero');
+    await page.keyboard.press('1');
+    await page.keyboard.press('ArrowRight');
+    check(await page.locator('#position').textContent() === 'Question 2 of 64', 'arrow key moves to question 2 in order');
+    await page.locator('.tabs button[data-nav="home"]').click();
+
     // Study practice: 3 General Knowledge questions in order
     await page.locator('#subject').selectOption('General Knowledge');
     await page.locator('#length').selectOption('custom');

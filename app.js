@@ -152,17 +152,20 @@
         st.answered + ' of ' + st.total + ' answered'
         + (st.accuracy === null ? '' : ', ' + st.accuracy + '% correct'));
       const actions = el('div', 'button-row');
-      const practice = el('button', null, 'Practice');
-      practice.type = 'button';
-      practice.addEventListener('click', () => {
+      const study = el('button', 'primary', 'Study one by one');
+      study.type = 'button';
+      study.addEventListener('click', () => studySubject(s.name));
+      const mock = el('button', null, 'Mock test');
+      mock.type = 'button';
+      mock.addEventListener('click', () => startMock(s));
+      const choose = el('button', null, 'Choose questions');
+      choose.type = 'button';
+      choose.addEventListener('click', () => {
         $('subject').value = s.name;
         updateSetup();
         $('setup-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
-      const mock = el('button', 'primary', 'Mock test');
-      mock.type = 'button';
-      mock.addEventListener('click', () => startMock(s));
-      actions.append(practice, mock);
+      actions.append(study, mock, choose);
       card.append(meter, detail, actions);
       wrap.append(card);
     });
@@ -231,6 +234,13 @@
       kind: 'practice',
       subject: subjectValue === 'all' ? 'All subjects' : subjectValue,
     });
+  }
+
+  // One subject, in the order of the study file, one question at a time (no shuffle).
+  function studySubject(name) {
+    if (!confirmReplace()) return;
+    const ids = QUESTIONS.filter(q => q.subject === name).map(q => q.id);
+    begin({ ids, mode: 'study', kind: 'practice', subject: name });
   }
 
   function startMock(subject) {
