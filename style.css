@@ -341,3 +341,14 @@ button.primary:hover:not(:disabled) { filter: brightness(1.06); }
 
 /* spacing between the answer feedback and the reason */
 .why { margin-top: 12px; }
+
+/* daily goal line and printing */
+.today { margin: -6px 0 16px; }
+.print-only { display: none; }
+@media print {
+  body { background: #fff; color: #000; }
+  body > header, body > main, body > footer { display: none !important; }
+  .print-only { display: block !important; }
+  .print-item { break-inside: avoid; border-bottom: 1px solid #999; padding: 8px 0; }
+  .print-item p, .print-item h3 { color: #000; }
+}

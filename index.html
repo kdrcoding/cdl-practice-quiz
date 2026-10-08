@@ -42,6 +42,7 @@
     </div>
 
     <h1 id="home-title" class="page-title">Practice by subject</h1>
+    <p id="today" class="today muted small" aria-live="polite"></p>
     <div id="subject-cards" class="subject-cards"></div>
 
     <div class="home-grid">
@@ -233,6 +234,7 @@
         <button id="export" type="button">Save backup file</button>
         <button id="import-button" type="button">Load backup file</button>
         <input id="import" type="file" accept="application/json,.json" hidden>
+        <button id="print-missed" type="button">Print missed questions</button>
         <button id="reset" type="button" class="danger">Erase all progress</button>
       </div>
       <p id="data-message" class="small" role="status"></p>
@@ -240,6 +242,8 @@
   </section>
 
 </main>
+
+<section id="print-sheet" class="print-only" aria-label="Printable questions"></section>
 
 <footer class="wrap foot muted small">
   Practice material only. Check your state's current CDL manual for the rules that apply to you.

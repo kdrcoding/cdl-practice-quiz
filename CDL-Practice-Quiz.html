@@ -350,6 +350,17 @@ button.primary:hover:not(:disabled) { filter: brightness(1.06); }
 
 /* spacing between the answer feedback and the reason */
 .why { margin-top: 12px; }
+
+/* daily goal line and printing */
+.today { margin: -6px 0 16px; }
+.print-only { display: none; }
+@media print {
+  body { background: #fff; color: #000; }
+  body > header, body > main, body > footer { display: none !important; }
+  .print-only { display: block !important; }
+  .print-item { break-inside: avoid; border-bottom: 1px solid #999; padding: 8px 0; }
+  .print-item p, .print-item h3 { color: #000; }
+}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -386,6 +397,7 @@ button.primary:hover:not(:disabled) { filter: brightness(1.06); }
     </div>
 
     <h1 id="home-title" class="page-title">Practice by subject</h1>
+    <p id="today" class="today muted small" aria-live="polite"></p>
     <div id="subject-cards" class="subject-cards"></div>
 
     <div class="home-grid">
@@ -577,6 +589,7 @@ button.primary:hover:not(:disabled) { filter: brightness(1.06); }
         <button id="export" type="button">Save backup file</button>
         <button id="import-button" type="button">Load backup file</button>
         <input id="import" type="file" accept="application/json,.json" hidden>
+        <button id="print-missed" type="button">Print missed questions</button>
         <button id="reset" type="button" class="danger">Erase all progress</button>
       </div>
       <p id="data-message" class="small" role="status"></p>
@@ -584,6 +597,8 @@ button.primary:hover:not(:disabled) { filter: brightness(1.06); }
   </section>
 
 </main>
+
+<section id="print-sheet" class="print-only" aria-label="Printable questions"></section>
 
 <footer class="wrap foot muted small">
   Practice material only. Check your state's current CDL manual for the rules that apply to you.
@@ -1518,7 +1533,7 @@ const Store = (function () {
   let data = blank();
 
   function blank() {
-    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null, reports: [] };
+    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null, reports: [], daily: {} };
   }
 
   function count(value) {
@@ -1557,6 +1572,16 @@ const Store = (function () {
     return out;
   }
 
+  function sanitizeDaily(raw) {
+    const out = {};
+    if (raw && typeof raw === 'object') {
+      Object.keys(raw).forEach(key => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(key) && count(raw[key]) > 0) out[key] = count(raw[key]);
+      });
+    }
+    return out;
+  }
+
   function sanitize(raw) {
     const out = blank();
     const stats = raw.questions && typeof raw.questions === 'object' ? raw.questions : {};
@@ -1577,6 +1602,7 @@ const Store = (function () {
     out.session = validSession(raw.session) ? raw.session : null;
     out.theme = raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : null;
     out.rules = raw.rules ? sanitizeRules(raw.rules) : null;
+    out.daily = sanitizeDaily(raw.daily);
     out.reports = (Array.isArray(raw.reports) ? raw.reports : [])
       .filter(r => r && byId.has(r.id) && Number.isFinite(r.at))
       .map(r => ({ id: r.id, note: typeof r.note === 'string' ? r.note.slice(0, 500) : '', at: r.at }))
@@ -1622,6 +1648,7 @@ const Store = (function () {
       s.due = now;
     }
     s.last = isCorrect ? 'right' : 'wrong';
+    countDay();
     save();
   }
 
@@ -1656,6 +1683,35 @@ const Store = (function () {
   }
 
   function session() { return data.session; }
+
+  // ----- daily activity (the daily goal and the streak) -----
+
+  function dayKey(date) {
+    const d = date || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function countDay() {
+    const key = dayKey();
+    data.daily[key] = (data.daily[key] || 0) + 1;
+    const keys = Object.keys(data.daily).sort();
+    keys.slice(0, Math.max(0, keys.length - 400)).forEach(k => { delete data.daily[k]; });
+  }
+
+  function todayCount() { return data.daily[dayKey()] || 0; }
+
+  // Days in a row with at least one answer, counting back from today.
+  // If today has no answers yet, the streak counts back from yesterday.
+  function streak(now) {
+    let day = now || new Date();
+    if (!data.daily[dayKey(day)]) day = new Date(day.getTime() - DAY);
+    let total = 0;
+    while (data.daily[dayKey(day)]) {
+      total++;
+      day = new Date(day.getTime() - DAY);
+    }
+    return total;
+  }
 
   // ----- reports (questions the user says look wrong or unclear) -----
 
@@ -1716,7 +1772,7 @@ const Store = (function () {
 
   return {
     load, statsFor, recordAnswer, isDue, dueCount, isSaved, toggleSaved,
-    addReport, removeReport, reports,
+    addReport, removeReport, reports, todayCount, streak,
     addAttempt, setSession, session, rules, setRules, resetRules,
     theme, setTheme, reset, exportText, importText,
     get attempts() { return data.attempts; },
@@ -1736,6 +1792,7 @@ const Store = (function () {
     { name: 'General Knowledge', blurb: 'Inspections, cargo and driving' },
   ];
   const LETTERS = ['A', 'B', 'C'];
+  const DAILY_GOAL = 20;
   const VIEWS = ['home', 'quiz', 'results', 'browse', 'stats'];
   // Every reason is written from general CDL knowledge until it is checked against the official manual.
   const UNVERIFIED_NOTE = '(Not yet checked against the official manual.)';
@@ -1857,11 +1914,18 @@ const Store = (function () {
   }
 
   function renderHome() {
+    renderToday();
     renderResume();
     renderSubjectCards();
     renderMockList();
     renderRulesForm();
     updateSetup();
+  }
+
+  function renderToday() {
+    const today = Store.todayCount();
+    const goal = today >= DAILY_GOAL ? ' Goal reached.' : '';
+    $('today').textContent = 'Today: ' + today + ' of ' + DAILY_GOAL + ' questions.' + goal + ' Streak: ' + plural(Store.streak(), 'day') + '.';
   }
 
   function renderResume() {
@@ -2387,10 +2451,20 @@ const Store = (function () {
     if (!matches.length) list.append(el('p', 'muted', 'No questions match. Try another search or filter.'));
   }
 
+  // When a question comes back for review, from the spaced-review schedule.
+  function reviewText(id) {
+    const s = Store.statsFor(id);
+    if (!s.last) return '';
+    if (!s.due || s.due <= Date.now()) return 'Due for review now';
+    return 'Next review in ' + plural(Math.ceil((s.due - Date.now()) / 86400000), 'day');
+  }
+
   function browseCard(q) {
     const card = el('article', 'browse-card panel');
     const head = el('div', 'browse-head');
     head.append(el('span', 'muted small', q.subject + ', #' + q.number), el('span', 'badge ' + statusOf(q.id), statusLabel(q.id)));
+    const review = reviewText(q.id);
+    if (review) head.append(el('span', 'muted small', review));
     card.append(head, el('h3', null, q.question));
 
     const answerBox = el('div', 'browse-answer');
@@ -2465,6 +2539,7 @@ const Store = (function () {
       [mocks.filter(a => a.passed).length + ' / ' + mocks.length, 'mock tests passed'],
       [String(Store.savedIds.length), 'bookmarked'],
       [String(Store.dueCount()), 'due for review now'],
+      [plural(Store.streak(), 'day'), 'in a row'],
     ].forEach(([value, label]) => {
       const box = el('div', 'stat-card panel');
       box.append(el('strong', null, value), el('span', 'muted small', label));
@@ -2523,6 +2598,28 @@ const Store = (function () {
   }
 
   function setDataMessage(text) { $('data-message').textContent = text; }
+
+  // A printable sheet of the questions answered wrong last time, with the correct answer marked.
+  function printMissed() {
+    const sheet = $('print-sheet');
+    sheet.replaceChildren();
+    const missed = QUESTIONS.filter(q => statusOf(q.id) === 'missed');
+    sheet.append(el('h1', null, 'Questions to review'));
+    sheet.append(el('p', null, plural(missed.length, 'question') + ' answered wrong last time. The correct answer is marked.'));
+    if (!missed.length) sheet.append(el('p', null, 'No missed questions right now.'));
+    missed.forEach((q, n) => {
+      const item = el('div', 'print-item');
+      item.append(el('p', 'small', (n + 1) + '. ' + q.subject + ', #' + q.number));
+      item.append(el('h3', null, q.question));
+      q.options.forEach((text, i) => {
+        item.append(el('p', null, LETTERS[i] + '. ' + text + (q.answer === i ? ' (correct)' : '')));
+      });
+      const reason = EXPLANATIONS[q.id];
+      if (reason) item.append(el('p', 'small', 'Why: ' + reason + ' ' + UNVERIFIED_NOTE));
+      sheet.append(item);
+    });
+    window.print();
+  }
 
   function exportBackup() {
     const blob = new Blob([Store.exportText()], { type: 'application/json' });
@@ -2607,6 +2704,7 @@ const Store = (function () {
   $('export').addEventListener('click', exportBackup);
   $('import-button').addEventListener('click', () => $('import').click());
   $('rules-reset').addEventListener('click', resetRules);
+  $('print-missed').addEventListener('click', printMissed);
   $('report-btn').addEventListener('click', toggleReportBox);
   $('report-save').addEventListener('click', saveReport);
   $('import').addEventListener('change', e => importBackup(e.target.files[0]));

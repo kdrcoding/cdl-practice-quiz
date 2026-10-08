@@ -21,7 +21,7 @@ const Store = (function () {
   let data = blank();
 
   function blank() {
-    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null, reports: [] };
+    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null, reports: [], daily: {} };
   }
 
   function count(value) {
@@ -60,6 +60,16 @@ const Store = (function () {
     return out;
   }
 
+  function sanitizeDaily(raw) {
+    const out = {};
+    if (raw && typeof raw === 'object') {
+      Object.keys(raw).forEach(key => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(key) && count(raw[key]) > 0) out[key] = count(raw[key]);
+      });
+    }
+    return out;
+  }
+
   function sanitize(raw) {
     const out = blank();
     const stats = raw.questions && typeof raw.questions === 'object' ? raw.questions : {};
@@ -80,6 +90,7 @@ const Store = (function () {
     out.session = validSession(raw.session) ? raw.session : null;
     out.theme = raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : null;
     out.rules = raw.rules ? sanitizeRules(raw.rules) : null;
+    out.daily = sanitizeDaily(raw.daily);
     out.reports = (Array.isArray(raw.reports) ? raw.reports : [])
       .filter(r => r && byId.has(r.id) && Number.isFinite(r.at))
       .map(r => ({ id: r.id, note: typeof r.note === 'string' ? r.note.slice(0, 500) : '', at: r.at }))
@@ -125,6 +136,7 @@ const Store = (function () {
       s.due = now;
     }
     s.last = isCorrect ? 'right' : 'wrong';
+    countDay();
     save();
   }
 
@@ -159,6 +171,35 @@ const Store = (function () {
   }
 
   function session() { return data.session; }
+
+  // ----- daily activity (the daily goal and the streak) -----
+
+  function dayKey(date) {
+    const d = date || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function countDay() {
+    const key = dayKey();
+    data.daily[key] = (data.daily[key] || 0) + 1;
+    const keys = Object.keys(data.daily).sort();
+    keys.slice(0, Math.max(0, keys.length - 400)).forEach(k => { delete data.daily[k]; });
+  }
+
+  function todayCount() { return data.daily[dayKey()] || 0; }
+
+  // Days in a row with at least one answer, counting back from today.
+  // If today has no answers yet, the streak counts back from yesterday.
+  function streak(now) {
+    let day = now || new Date();
+    if (!data.daily[dayKey(day)]) day = new Date(day.getTime() - DAY);
+    let total = 0;
+    while (data.daily[dayKey(day)]) {
+      total++;
+      day = new Date(day.getTime() - DAY);
+    }
+    return total;
+  }
 
   // ----- reports (questions the user says look wrong or unclear) -----
 
@@ -219,7 +260,7 @@ const Store = (function () {
 
   return {
     load, statsFor, recordAnswer, isDue, dueCount, isSaved, toggleSaved,
-    addReport, removeReport, reports,
+    addReport, removeReport, reports, todayCount, streak,
     addAttempt, setSession, session, rules, setRules, resetRules,
     theme, setTheme, reset, exportText, importText,
     get attempts() { return data.attempts; },

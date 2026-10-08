@@ -9,6 +9,7 @@
     { name: 'General Knowledge', blurb: 'Inspections, cargo and driving' },
   ];
   const LETTERS = ['A', 'B', 'C'];
+  const DAILY_GOAL = 20;
   const VIEWS = ['home', 'quiz', 'results', 'browse', 'stats'];
   // Every reason is written from general CDL knowledge until it is checked against the official manual.
   const UNVERIFIED_NOTE = '(Not yet checked against the official manual.)';
@@ -130,11 +131,18 @@
   }
 
   function renderHome() {
+    renderToday();
     renderResume();
     renderSubjectCards();
     renderMockList();
     renderRulesForm();
     updateSetup();
+  }
+
+  function renderToday() {
+    const today = Store.todayCount();
+    const goal = today >= DAILY_GOAL ? ' Goal reached.' : '';
+    $('today').textContent = 'Today: ' + today + ' of ' + DAILY_GOAL + ' questions.' + goal + ' Streak: ' + plural(Store.streak(), 'day') + '.';
   }
 
   function renderResume() {
@@ -660,10 +668,20 @@
     if (!matches.length) list.append(el('p', 'muted', 'No questions match. Try another search or filter.'));
   }
 
+  // When a question comes back for review, from the spaced-review schedule.
+  function reviewText(id) {
+    const s = Store.statsFor(id);
+    if (!s.last) return '';
+    if (!s.due || s.due <= Date.now()) return 'Due for review now';
+    return 'Next review in ' + plural(Math.ceil((s.due - Date.now()) / 86400000), 'day');
+  }
+
   function browseCard(q) {
     const card = el('article', 'browse-card panel');
     const head = el('div', 'browse-head');
     head.append(el('span', 'muted small', q.subject + ', #' + q.number), el('span', 'badge ' + statusOf(q.id), statusLabel(q.id)));
+    const review = reviewText(q.id);
+    if (review) head.append(el('span', 'muted small', review));
     card.append(head, el('h3', null, q.question));
 
     const answerBox = el('div', 'browse-answer');
@@ -738,6 +756,7 @@
       [mocks.filter(a => a.passed).length + ' / ' + mocks.length, 'mock tests passed'],
       [String(Store.savedIds.length), 'bookmarked'],
       [String(Store.dueCount()), 'due for review now'],
+      [plural(Store.streak(), 'day'), 'in a row'],
     ].forEach(([value, label]) => {
       const box = el('div', 'stat-card panel');
       box.append(el('strong', null, value), el('span', 'muted small', label));
@@ -796,6 +815,28 @@
   }
 
   function setDataMessage(text) { $('data-message').textContent = text; }
+
+  // A printable sheet of the questions answered wrong last time, with the correct answer marked.
+  function printMissed() {
+    const sheet = $('print-sheet');
+    sheet.replaceChildren();
+    const missed = QUESTIONS.filter(q => statusOf(q.id) === 'missed');
+    sheet.append(el('h1', null, 'Questions to review'));
+    sheet.append(el('p', null, plural(missed.length, 'question') + ' answered wrong last time. The correct answer is marked.'));
+    if (!missed.length) sheet.append(el('p', null, 'No missed questions right now.'));
+    missed.forEach((q, n) => {
+      const item = el('div', 'print-item');
+      item.append(el('p', 'small', (n + 1) + '. ' + q.subject + ', #' + q.number));
+      item.append(el('h3', null, q.question));
+      q.options.forEach((text, i) => {
+        item.append(el('p', null, LETTERS[i] + '. ' + text + (q.answer === i ? ' (correct)' : '')));
+      });
+      const reason = EXPLANATIONS[q.id];
+      if (reason) item.append(el('p', 'small', 'Why: ' + reason + ' ' + UNVERIFIED_NOTE));
+      sheet.append(item);
+    });
+    window.print();
+  }
 
   function exportBackup() {
     const blob = new Blob([Store.exportText()], { type: 'application/json' });
@@ -880,6 +921,7 @@
   $('export').addEventListener('click', exportBackup);
   $('import-button').addEventListener('click', () => $('import').click());
   $('rules-reset').addEventListener('click', resetRules);
+  $('print-missed').addEventListener('click', printMissed);
   $('report-btn').addEventListener('click', toggleReportBox);
   $('report-save').addEventListener('click', saveReport);
   $('import').addEventListener('change', e => importBackup(e.target.files[0]));

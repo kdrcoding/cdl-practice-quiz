@@ -292,6 +292,37 @@ async function answerAll(page, count, choice) {
     await ctx.close();
   }
 
+  // Daily goal and streak, review dates in the browser, and the printable sheet of missed questions
+  {
+    const dctx = await browser.newContext();
+    const dp = await dctx.newPage();
+    const dErrors = [];
+    dp.on('pageerror', e => dErrors.push(e.message));
+    dp.on('dialog', d => d.accept());
+    await dp.goto(pathToFileURL(path.join(root, 'index.html')).href);
+    await dp.evaluate(() => localStorage.clear());
+    await dp.reload();
+    check((await dp.locator('#today').textContent()).startsWith('Today: 0 of 20'), 'home shows today against the daily goal');
+    await dp.locator('.subject-card').nth(2).getByRole('button', { name: 'Study one by one' }).click();
+    await dp.locator('.choice').nth(0).click();
+    const wrongCount = await dp.locator('.choice.wrong').count();
+    await dp.locator('.tabs button[data-nav="home"]').click();
+    check((await dp.locator('#today').textContent()).includes('Today: 1 of 20'), 'the daily count goes up after answering');
+    check((await dp.locator('#today').textContent()).includes('Streak: 1 day'), 'the streak shows after answering today');
+    await dp.locator('.tabs button[data-nav="browse"]').click();
+    await dp.locator('#search').fill('Containerized loads');
+    check((await dp.locator('.browse-card').first().locator('.browse-head').textContent()).match(/Next review|Due for review/) !== null, 'answered questions show when they come back for review');
+    await dp.locator('#search').fill('');
+    await dp.evaluate(() => { window.print = () => {}; });
+    await dp.locator('.tabs button[data-nav="stats"]').click();
+    await dp.locator('#print-missed').click();
+    const items = await dp.locator('#print-sheet .print-item').count();
+    check(items === wrongCount, 'the print sheet lists the questions answered wrong (' + items + ')');
+    check((await dp.locator('#print-sheet h1').textContent()) === 'Questions to review', 'the print sheet has its title');
+    check(dErrors.length === 0, 'no page errors on the daily goal, review, and print features');
+    await dctx.close();
+  }
+
   // Installable and offline: serve the folder over http, then open the app with no connection
   const http = require('http');
   const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml' };

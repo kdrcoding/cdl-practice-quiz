@@ -54,6 +54,10 @@ That's it. You can use the quiz without installing anything.
 
 Each test puts the answers in a new random order, so the correct answer is not always C. This makes it harder to memorize letters. Review and results show the letters used in that test.
 
+### Daily goal, streak, and printing
+
+The home page shows how many questions you answered today, against a goal of 20, and your streak of days in a row. Under **Progress**, the review date of each question appears in the question browser, and **Print missed questions** makes a printable sheet of the questions you got wrong, with the correct answers marked.
+
 ### Why this answer
 
 After each answer, a short reason explains why the correct answer is right. These reasons were written from general CDL knowledge, so each one is labelled "not yet checked against the official manual" until it is verified. They live in `explanations.js`.
@@ -134,6 +138,7 @@ If you spot a mistake, please open an issue on GitHub.
 
 ```bash
 node tests/check-questions.js   # check the question bank
+node tests/store-test.js        # storage tests: review timing, streak, backups, test rules (no browser)
 node build.js                   # rebuild CDL-Practice-Quiz.html
 node tests/browser-test.cjs     # run the browser tests (set PLAYWRIGHT_PATH if Playwright is not found)
 ```
