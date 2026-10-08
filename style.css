@@ -303,3 +303,6 @@ label.inline select { width: auto; }
 .report-row { border-top: 1px solid var(--line); padding: 12px 0; }
 .report-row h3 { font-size: 16px; margin: 4px 0 6px; }
 .report-row p { margin: 4px 0; }
+
+/* explanation after an answer */
+.why { margin: 0 0 16px; padding: 12px 14px; background: var(--panel-2); border-left: 4px solid var(--accent); border-radius: 6px; }

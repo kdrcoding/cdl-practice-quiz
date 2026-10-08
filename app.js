@@ -472,6 +472,11 @@
       feedback.classList.add('bad');
     }
 
+    // Explanation, shown only after an answer and only when the question has one
+    const why = $('why');
+    why.hidden = !(revealed && q.why);
+    why.textContent = revealed && q.why ? 'Why: ' + q.why : '';
+
     $('prev').disabled = session.index === 0;
     $('next').textContent = session.index === total - 1 ? 'See results' : 'Next';
 
@@ -599,6 +604,7 @@
       card.append(el('p', null, isScored(q)
         ? 'Correct answer: ' + LETTERS[q.answer] + '. ' + q.options[q.answer]
         : 'No answer is marked in the study material, so this question is not scored.'));
+      if (q.why) card.append(el('p', 'small', 'Why: ' + q.why));
       list.append(card);
     });
 

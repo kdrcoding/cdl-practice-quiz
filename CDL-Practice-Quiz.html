@@ -312,6 +312,9 @@ label.inline select { width: auto; }
 .report-row { border-top: 1px solid var(--line); padding: 12px 0; }
 .report-row h3 { font-size: 16px; margin: 4px 0 6px; }
 .report-row p { margin: 4px 0; }
+
+/* explanation after an answer */
+.why { margin: 0 0 16px; padding: 12px 14px; background: var(--panel-2); border-left: 4px solid var(--accent); border-radius: 6px; }
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -434,6 +437,7 @@ label.inline select { width: auto; }
     <h2 id="question" class="question" tabindex="-1"></h2>
     <div id="choices" class="choices"></div>
     <p id="feedback" class="feedback" aria-live="polite"></p>
+    <p id="why" class="why" hidden></p>
 
     <div id="report-box" class="report-box" hidden>
       <label for="report-note">What looks wrong with this question? (optional)</label>
@@ -1708,6 +1712,11 @@ const Store = (function () {
       feedback.classList.add('bad');
     }
 
+    // Explanation, shown only after an answer and only when the question has one
+    const why = $('why');
+    why.hidden = !(revealed && q.why);
+    why.textContent = revealed && q.why ? 'Why: ' + q.why : '';
+
     $('prev').disabled = session.index === 0;
     $('next').textContent = session.index === total - 1 ? 'See results' : 'Next';
 
@@ -1835,6 +1844,7 @@ const Store = (function () {
       card.append(el('p', null, isScored(q)
         ? 'Correct answer: ' + LETTERS[q.answer] + '. ' + q.options[q.answer]
         : 'No answer is marked in the study material, so this question is not scored.'));
+      if (q.why) card.append(el('p', 'small', 'Why: ' + q.why));
       list.append(card);
     });
 
