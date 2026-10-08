@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Free CDL practice quiz for air brakes, combination vehicles and general knowledge. Works offline. No ads, no accounts, no tracking.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>CDL Practice Quiz</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <h1>CDL Practice Quiz</h1>
+    <p class="muted">Air brakes, combination vehicles, general knowledge</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="setup" aria-labelledby="setup-title">
+    <div class="stats">
+      <div><strong id="stat-total">0</strong><span>Questions</span></div>
+      <div><strong id="stat-missed">0</strong><span>Missed</span></div>
+      <div><strong id="stat-saved">0</strong><span>Bookmarked</span></div>
+    </div>
+
+    <div class="setup-layout">
+      <form class="panel setup-form" id="setup-form" autocomplete="off">
+        <h2 id="setup-title">Set up a test</h2>
+
+        <label for="subject">Subject</label>
+        <select id="subject"></select>
+
+        <label for="mode">Mode</label>
+        <select id="mode">
+          <option value="study">Study: answers as you go</option>
+          <option value="exam">Exam: answers at the end</option>
+        </select>
+
+        <label for="length">Number of questions</label>
+        <select id="length">
+          <option value="10">10 questions</option>
+          <option value="25">25 questions</option>
+          <option value="50">50 questions</option>
+          <option value="all">All matching questions</option>
+          <option value="custom">Choose a number</option>
+        </select>
+        <input id="custom" type="number" min="1" max="445" value="20" aria-label="Custom number of questions" hidden>
+
+        <label for="pool">Which questions</label>
+        <select id="pool">
+          <option value="all">All questions</option>
+          <option value="missed">Only questions I missed</option>
+          <option value="saved">Only bookmarked questions</option>
+        </select>
+
+        <label class="check"><input id="shuffle" type="checkbox" checked> Shuffle the order</label>
+
+        <p id="match" class="muted small" aria-live="polite"></p>
+
+        <div class="button-row">
+          <button id="start" type="button" class="primary">Start test</button>
+          <button id="study-all" type="button">Study every question</button>
+        </div>
+        <p id="setup-message" class="small" role="status"></p>
+      </form>
+
+      <aside class="panel side">
+        <h2>Good to know</h2>
+        <ul class="plain">
+          <li>Everything runs in this browser. No ads, no accounts, no tracking.</li>
+          <li>Your missed questions, bookmarks and the test in progress are saved on this device only.</li>
+          <li>Keyboard: 1, 2, 3 pick an answer. Left and right arrows move. S bookmarks.</li>
+          <li>Answers follow the ones marked in the study material. If one looks wrong, tell the maintainers.</li>
+        </ul>
+        <button id="resume" type="button" class="wide" hidden></button>
+        <button id="reset" type="button" class="wide danger-text">Reset my progress</button>
+      </aside>
+    </div>
+  </section>
+
+  <section id="quiz" hidden aria-label="Test in progress">
+    <div class="quiz-top">
+      <span id="position"></span>
+      <span id="topic" class="muted"></span>
+      <button id="bookmark" type="button" aria-pressed="false">Bookmark</button>
+    </div>
+    <div class="bar" aria-hidden="true"><div id="progress"></div></div>
+
+    <h2 id="question" class="question" tabindex="-1"></h2>
+    <div id="choices" class="choices"></div>
+    <p id="feedback" class="feedback" aria-live="polite"></p>
+
+    <div class="nav">
+      <button id="prev" type="button">Previous</button>
+      <button id="next" type="button" class="primary">Next</button>
+    </div>
+    <div class="quiz-tools">
+      <button id="finish" type="button">Finish test</button>
+      <button id="exit" type="button">Save and exit</button>
+    </div>
+
+    <nav id="grid" class="grid" aria-label="Questions in this test"></nav>
+  </section>
+
+  <section id="results" hidden aria-labelledby="results-title">
+    <h2 id="results-title">Test results</h2>
+    <p id="score" class="score"></p>
+    <p id="result-text"></p>
+    <div id="breakdown" class="breakdown"></div>
+
+    <div class="button-row">
+      <button id="retry" type="button" class="primary">Practice the ones I missed</button>
+      <button id="back-setup" type="button">Back to setup</button>
+    </div>
+
+    <div class="review-head">
+      <h3>Review</h3>
+      <label class="inline" for="review-filter">Show
+        <select id="review-filter">
+          <option value="all">All questions</option>
+          <option value="wrong">Wrong</option>
+          <option value="unanswered">Unanswered</option>
+          <option value="ungraded">Not scored</option>
+        </select>
+      </label>
+    </div>
+    <div id="review"></div>
+  </section>
+
+</main>
+
+<footer class="wrap small muted foot">
+  Practice material only. Check your state's official CDL manual for the rules that apply to you.
+</footer>
+
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
