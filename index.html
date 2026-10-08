@@ -67,6 +67,7 @@
           <option value="all">All questions</option>
           <option value="missed">Questions I got wrong last time</option>
           <option value="new">Questions I have not seen yet</option>
+          <option value="due">Due for review now (spaced review)</option>
           <option value="saved">Bookmarked questions</option>
         </select>
 
@@ -83,8 +84,15 @@
 
       <div class="panel">
         <h2>Mock tests</h2>
-        <p class="muted small">Timed, exam-style sets in the usual layout. Passing is 80% of the scored questions. Layouts vary by state, so check your state's test rules.</p>
+        <p class="muted small">Timed, exam-style sets. Each one uses the rules below. Layouts vary by state, so set your state's numbers if they differ.</p>
         <div id="mock-list" class="mock-list"></div>
+        <details class="rules">
+          <summary>Change the test rules</summary>
+          <p class="muted small">Questions, pass mark, and time limit for each mock test. The typical layout is the starting point.</p>
+          <div id="rules-form" class="rules-form"></div>
+          <div class="button-row"><button id="rules-reset" type="button">Use the typical layout</button></div>
+          <p id="rules-message" class="small" role="status"></p>
+        </details>
         <h3 class="side-title">Good to know</h3>
         <ul class="plain small">
           <li>Everything runs in this browser. No ads, no accounts, no tracking.</li>

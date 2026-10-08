@@ -53,6 +53,19 @@ async function answerAll(page, count, choice) {
     check(await page.locator('#mock-list button').count() === 3, 'home offers three mock tests');
     check(await page.locator('#subject option').count() === 4, 'subject list has all + 3 subjects');
 
+    // Test rules: change a subject's question count, check the list, then restore the typical layout
+    await page.locator('#home details summary').click();
+    const combinationCount = page.locator('input[data-subject="Combination Vehicles"][data-field="count"]');
+    await combinationCount.fill('10');
+    await combinationCount.press('Tab');
+    check((await page.locator('#mock-list').textContent()).includes('10 questions'), 'changing test rules updates the mock test list');
+    await page.locator('#rules-reset').click();
+    check((await page.locator('#mock-list').textContent()).includes('20 questions'), 'the typical layout restores the mock test list');
+    check(await page.locator('#pool option[value="due"]').count() === 1, 'questions can be picked by spaced review (due now)');
+    await page.locator('#pool').selectOption('due');
+    check(!(await page.locator('#match').textContent()).includes('No questions'), 'due-for-review selection has questions to study');
+    await page.locator('#pool').selectOption('all');
+
     // Study one subject one by one, in file order
     await page.locator('.subject-card').nth(0).getByRole('button', { name: 'Study one by one' }).click();
     check(await page.locator('#position').textContent() === 'Question 1 of 64', 'study one by one starts Air Brakes at question 1 of 64');
@@ -137,9 +150,25 @@ async function answerAll(page, count, choice) {
     await page.locator('#mock-list button').nth(1).click();
     check(await page.locator('#position').textContent() === 'Question 1 of 20', 'mock test has the usual 20 questions');
     check((await page.locator('#topic').textContent()).includes('mock test'), 'mock test is labelled');
+    check((await page.locator('#timer').textContent()).startsWith('Time left'), 'timed mock test counts down');
     await answerAll(page, 20, 1);
     await page.locator('#finish').click();
     check((await page.locator('#verdict').textContent()).length > 0, 'mock test shows a pass or not-yet verdict');
+
+    // A timed mock ends by itself when the time runs out
+    await go(page, 'home');
+    await page.locator('#mock-list button').first().click();
+    await page.locator('#exit').click();
+    await page.evaluate(() => {
+      const data = JSON.parse(localStorage.getItem('cdl-quiz-data-v3'));
+      data.session.limitMs = 3000;
+      localStorage.setItem('cdl-quiz-data-v3', JSON.stringify(data));
+    });
+    await page.reload();
+    await page.locator('#resume').click();
+    await page.waitForSelector('#results:not([hidden])', { timeout: 15000 });
+    check((await page.locator('#result-time').textContent()).includes('Time is up'), 'mock test ends by itself when time is up');
+    await go(page, 'home');
 
     // Progress page reflects the tests
     await go(page, 'stats');

@@ -29,6 +29,7 @@ That's it. You can use the quiz without installing anything.
 | Practise with a custom set of questions | **Choose questions** on a card, or the form on the Practice page |
 | Take a timed test like the real exam | **Mock test** on a card, or the list under "Mock tests" |
 | Find a question or check an answer | **Questions** tab (search, filter, and "Show answers") |
+| Review what I am about to forget | **Which questions** on the Practice page, choose **Due for review now** |
 | See how well I'm doing | **Progress** tab |
 | Keep my progress safe | **Progress** tab, then **Save backup file** |
 
@@ -47,7 +48,9 @@ Mock tests are timed and use a typical layout:
 | Combination Vehicles | 20 |
 | General Knowledge | 50 |
 
-You pass with **80% of the scored questions**. Test layouts and pass marks vary by state, so check your state's rules.
+The timer counts down. When time runs out, the test ends and is scored. You pass with **80% of the scored questions** by default.
+
+**Change the rules to match your state.** Open **Change the test rules** under Mock tests. You can set the number of questions, the pass mark, and the minutes for each subject. Layouts vary by state, so check your state's rules. **Use the typical layout** restores the defaults.
 
 ### Keyboard shortcuts
 

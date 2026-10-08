@@ -8,8 +8,7 @@
     { name: 'Combination Vehicles', blurb: 'Coupling, trailers and vehicle control', mock: 20 },
     { name: 'General Knowledge', blurb: 'Inspections, cargo and driving', mock: 50 },
   ];
-  const PASS_MARK = 0.8;
-  const LETTERS = ['A', 'B', 'C'];
+    const LETTERS = ['A', 'B', 'C'];
   const VIEWS = ['home', 'quiz', 'results', 'browse', 'stats'];
   const REVIEW_LABEL = { right: 'Correct', wrong: 'Wrong', unanswered: 'Unanswered', ungraded: 'Not scored', flagged: 'Flagged' };
 
@@ -121,6 +120,7 @@
     renderResume();
     renderSubjectCards();
     renderMockList();
+    renderRulesForm();
     updateSetup();
   }
 
@@ -174,18 +174,70 @@
   function renderMockList() {
     const wrap = $('mock-list');
     wrap.replaceChildren();
+    const rules = Store.rules();
     SUBJECTS.forEach(s => {
+      const rule = rules[s.name];
       const last = Store.attempts.slice().reverse().find(a => a.kind === 'mock' && a.subject === s.name);
       const row = el('div', 'mock-row');
       const text = el('div');
+      const detail = plural(rule.count, 'question') + ', ' + rule.minutes + ' minutes, pass at ' + rule.pass + '%';
       text.append(el('strong', null, s.name), el('div', 'muted small',
-        plural(s.mock, 'question') + (last && last.scored ? ', last score ' + Math.round(last.right / last.scored * 100) + '%' : '')));
+        detail + (last && last.scored ? ', last score ' + Math.round(last.right / last.scored * 100) + '%' : '')));
       const button = el('button', null, 'Start');
       button.type = 'button';
       button.addEventListener('click', () => startMock(s));
       row.append(text, button);
       wrap.append(row);
     });
+  }
+
+    function renderRulesForm() {
+    const form = $('rules-form');
+    form.replaceChildren();
+    const rules = Store.rules();
+    SUBJECTS.forEach(s => {
+      const size = QUESTIONS.filter(q => q.subject === s.name).length;
+      const fieldset = el('div', 'rules-row');
+      fieldset.append(el('strong', null, s.name));
+      [
+        ['count', 'Questions', 1, size],
+        ['pass', 'Pass %', 50, 100],
+        ['minutes', 'Minutes', 5, 240],
+      ].forEach(([field, label, min, max]) => {
+        const wrapLabel = el('label', 'rule-field');
+        wrapLabel.append(document.createTextNode(label + ' '));
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = String(min);
+        input.max = String(max);
+        input.value = String(rules[s.name][field]);
+        input.dataset.subject = s.name;
+        input.dataset.field = field;
+        input.setAttribute('aria-label', s.name + ' ' + label.toLowerCase());
+        input.addEventListener('change', saveRules);
+        wrapLabel.append(input);
+        fieldset.append(wrapLabel);
+      });
+      form.append(fieldset);
+    });
+  }
+
+  function saveRules() {
+    const next = Store.rules();
+    document.querySelectorAll('#rules-form input').forEach(input => {
+      next[input.dataset.subject][input.dataset.field] = Number(input.value);
+    });
+    Store.setRules(next);
+    renderRulesForm();
+    renderMockList();
+    $('rules-message').textContent = 'Saved. Mock tests now use these rules.';
+  }
+
+  function resetRules() {
+    Store.resetRules();
+    renderRulesForm();
+    renderMockList();
+    $('rules-message').textContent = 'Back to the typical layout.';
   }
 
   function matchingQuestions() {
@@ -196,6 +248,7 @@
       if (which === 'missed') return statusOf(q.id) === 'missed';
       if (which === 'new') return statusOf(q.id) === 'new';
       if (which === 'saved') return Store.isSaved(q.id);
+      if (which === 'due') return Store.isDue(q.id);
       return true;
     });
   }
@@ -245,17 +298,19 @@
 
   function startMock(subject) {
     if (!confirmReplace()) return;
+    const rule = Store.rules()[subject.name];
     const pool = QUESTIONS.filter(q => q.subject === subject.name);
     begin({
-      ids: shuffled(pool).slice(0, subject.mock).map(q => q.id),
+      ids: shuffled(pool).slice(0, rule.count).map(q => q.id),
       mode: 'exam',
       kind: 'mock',
       subject: subject.name,
-      passMark: PASS_MARK,
+      passPct: rule.pass,
+      limitMs: rule.minutes * 60 * 1000,
     });
   }
 
-  function setupMessage(text) { $('setup-message').textContent = text; }
+    function setupMessage(text) { $('setup-message').textContent = text; }
 
   // ---------- quiz ----------
 
@@ -272,7 +327,25 @@
     return (session.spent || 0) + (session.runStart ? Date.now() - session.runStart : 0);
   }
 
-  function updateTimer() { $('timer').textContent = formatTime(spentMs()); }
+  function updateTimer() {
+    const spent = spentMs();
+    if (session && session.limitMs && !session.finished) {
+      const left = session.limitMs - spent;
+      if (left <= 0) {
+        timeUp();
+        return;
+      }
+      $('timer').textContent = 'Time left ' + formatTime(left);
+    } else {
+      $('timer').textContent = formatTime(spent);
+    }
+  }
+
+  function timeUp() {
+    if (!session || session.finished) return;
+    session.timedOut = true;
+    finish(true);
+  }
 
   function resumeTimer() {
     if (!session || session.finished) return;
@@ -411,10 +484,10 @@
     });
   }
 
-  function finish() {
+  function finish(force) {
     if (!session) return;
     const left = session.ids.filter(id => session.answers[id] === undefined).length;
-    if (left && !confirm(plural(left, 'unanswered question') + '. Finish the test anyway?')) return;
+    if (!force && left && !confirm(plural(left, 'unanswered question') + '. Finish the test anyway?')) return;
     pauseTimer();
     session.finished = true;
 
@@ -434,7 +507,7 @@
       scored: scored.length,
       right,
       seconds: Math.round(spentMs() / 1000),
-      passed: session.passMark ? pct !== null && pct >= session.passMark * 100 : null,
+      passed: session.passPct ? pct !== null && pct >= session.passPct : null,
     });
     Store.setSession(session);
     showResults();
@@ -458,13 +531,15 @@
     $('score').textContent = pct === null ? 'Not scored' : pct + '%';
     $('result-text').textContent = right + ' of ' + scored.length + ' scored questions correct'
       + (ungraded ? '. ' + plural(ungraded, 'question') + ' had no marked answer.' : '.');
-    $('result-time').textContent = 'Time: ' + formatTime(spentMs());
+    $('result-time').textContent = 'Time: ' + formatTime(spentMs()) + (session.timedOut ? '. Time is up.' : '');
 
     const verdict = $('verdict');
-    if (session.passMark && pct !== null) {
+    if (session.passPct && pct !== null) {
       verdict.hidden = false;
-      const passed = pct >= session.passMark * 100;
-      verdict.textContent = passed ? 'Pass. You reached the 80% pass mark.' : 'Not yet. You need 80% to pass.';
+      const passed = pct >= session.passPct;
+      verdict.textContent = passed
+        ? 'Pass. You reached the ' + session.passPct + '% pass mark.'
+        : 'Not yet. You need ' + session.passPct + '% to pass.';
       verdict.className = 'verdict ' + (passed ? 'good' : 'bad');
     } else {
       verdict.hidden = true;
@@ -593,6 +668,7 @@
       [String(attempts.length), 'tests finished'],
       [mocks.filter(a => a.passed).length + ' / ' + mocks.length, 'mock tests passed'],
       [String(Store.savedIds.length), 'bookmarked'],
+      [String(Store.dueCount()), 'due for review now'],
     ].forEach(([value, label]) => {
       const box = el('div', 'stat-card panel');
       box.append(el('strong', null, value), el('span', 'muted small', label));
@@ -714,7 +790,7 @@
   $('next').addEventListener('click', next);
   $('flag').addEventListener('click', toggleFlag);
   $('bookmark').addEventListener('click', toggleBookmark);
-  $('finish').addEventListener('click', finish);
+  $('finish').addEventListener('click', () => finish());
   $('exit').addEventListener('click', saveAndExit);
 
   $('retry').addEventListener('click', () => {
@@ -734,6 +810,7 @@
 
   $('export').addEventListener('click', exportBackup);
   $('import-button').addEventListener('click', () => $('import').click());
+  $('rules-reset').addEventListener('click', resetRules);
   $('import').addEventListener('change', e => importBackup(e.target.files[0]));
   $('reset').addEventListener('click', resetAll);
 

@@ -6,12 +6,22 @@
 const Store = (function () {
   const KEY = 'cdl-quiz-data-v3';
   const FORMAT = 'cdl-quiz-progress';
+  const DAY = 24 * 60 * 60 * 1000;
+  // Spaced review: after each right answer a question waits longer before it comes back.
+  const BOX_DAYS = [0, 1, 3, 7, 14];
   const byId = new Map(QUESTIONS.map(q => [q.id, q]));
+
+  // Typical layout for most states. Users can change these in the app, because layouts vary.
+  const DEFAULT_RULES = {
+    'Air Brakes': { count: 25, pass: 80, minutes: 60 },
+    'Combination Vehicles': { count: 20, pass: 80, minutes: 60 },
+    'General Knowledge': { count: 50, pass: 80, minutes: 60 },
+  };
 
   let data = blank();
 
   function blank() {
-    return { questions: {}, saved: [], attempts: [], session: null, theme: null };
+    return { questions: {}, saved: [], attempts: [], session: null, theme: null, rules: null };
   }
 
   function count(value) {
@@ -34,6 +44,22 @@ const Store = (function () {
     return true;
   }
 
+  function sanitizeRules(raw) {
+    const out = {};
+    for (const name of Object.keys(DEFAULT_RULES)) {
+      const d = DEFAULT_RULES[name];
+      const r = raw && typeof raw === 'object' && raw[name] ? raw[name] : {};
+      const inRange = (v, lo, hi, fallback) => Number.isInteger(v) && v >= lo && v <= hi ? v : fallback;
+      const size = QUESTIONS.filter(q => q.subject === name).length;
+      out[name] = {
+        count: inRange(r.count, 1, size, d.count),
+        pass: inRange(r.pass, 50, 100, d.pass),
+        minutes: inRange(r.minutes, 5, 240, d.minutes),
+      };
+    }
+    return out;
+  }
+
   function sanitize(raw) {
     const out = blank();
     const stats = raw.questions && typeof raw.questions === 'object' ? raw.questions : {};
@@ -45,12 +71,15 @@ const Store = (function () {
         right: count(s.right),
         wrong: count(s.wrong),
         last: s.last === 'right' || s.last === 'wrong' ? s.last : null,
+        box: Number.isInteger(s.box) && s.box >= 1 && s.box <= 5 ? s.box : 1,
+        due: Number.isFinite(s.due) ? s.due : null,
       };
     }
     out.saved = (Array.isArray(raw.saved) ? raw.saved : []).filter((id, i, all) => byId.has(id) && all.indexOf(id) === i);
     out.attempts = (Array.isArray(raw.attempts) ? raw.attempts : []).filter(validAttempt).slice(-200);
     out.session = validSession(raw.session) ? raw.session : null;
     out.theme = raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : null;
+    out.rules = raw.rules ? sanitizeRules(raw.rules) : null;
     return out;
   }
 
@@ -75,16 +104,35 @@ const Store = (function () {
   // ----- questions -----
 
   function statsFor(id) {
-    return data.questions[id] || { seen: 0, right: 0, wrong: 0, last: null };
+    return data.questions[id] || { seen: 0, right: 0, wrong: 0, last: null, box: 1, due: null };
   }
 
   function recordAnswer(id, isCorrect) {
-    const s = data.questions[id] || (data.questions[id] = { seen: 0, right: 0, wrong: 0, last: null });
+    const s = data.questions[id] || (data.questions[id] = { seen: 0, right: 0, wrong: 0, last: null, box: 1, due: null });
+    const now = Date.now();
     s.seen++;
-    if (isCorrect) s.right++;
-    else s.wrong++;
+    if (isCorrect) {
+      s.right++;
+      s.box = Math.min(5, s.box + 1);
+      s.due = now + BOX_DAYS[s.box - 1] * DAY;
+    } else {
+      s.wrong++;
+      s.box = 1;
+      s.due = now;
+    }
     s.last = isCorrect ? 'right' : 'wrong';
     save();
+  }
+
+  // A question is due when it has never been answered, or its review time has passed.
+  function isDue(id, now) {
+    const s = statsFor(id);
+    return s.seen === 0 || s.due === null || s.due <= (now || Date.now());
+  }
+
+  function dueCount() {
+    const now = Date.now();
+    return QUESTIONS.filter(q => isDue(q.id, now)).length;
   }
 
   function isSaved(id) { return data.saved.includes(id); }
@@ -107,6 +155,22 @@ const Store = (function () {
   }
 
   function session() { return data.session; }
+
+  // ----- test rules (questions, pass mark, time limit per subject) -----
+
+  function rules() {
+    return JSON.parse(JSON.stringify(data.rules || DEFAULT_RULES));
+  }
+
+  function setRules(next) {
+    data.rules = sanitizeRules(next);
+    save();
+  }
+
+  function resetRules() {
+    data.rules = null;
+    save();
+  }
 
   // ----- settings and backup -----
 
@@ -136,8 +200,9 @@ const Store = (function () {
   }
 
   return {
-    load, statsFor, recordAnswer, isSaved, toggleSaved,
-    addAttempt, setSession, session, theme, setTheme, reset, exportText, importText,
+    load, statsFor, recordAnswer, isDue, dueCount, isSaved, toggleSaved,
+    addAttempt, setSession, session, rules, setRules, resetRules,
+    theme, setTheme, reset, exportText, importText,
     get attempts() { return data.attempts; },
     get savedIds() { return data.saved; },
   };
