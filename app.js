@@ -455,6 +455,8 @@
         else if (i === answer) button.classList.add('wrong');
       }
       if (revealed) button.classList.add('locked');
+      if (revealed && isScored(q) && i === q.answer) button.append(el('span', 'tag good-tag', 'Correct answer'));
+      else if (revealed && isScored(q) && i === answer) button.append(el('span', 'tag bad-tag', 'Your answer'));
       button.setAttribute('aria-pressed', String(answer === i));
       button.addEventListener('click', () => choose(i));
       box.append(button);

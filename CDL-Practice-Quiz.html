@@ -315,6 +315,57 @@ label.inline select { width: auto; }
 
 /* explanation after an answer */
 .why { margin: 0 0 16px; padding: 12px 14px; background: var(--panel-2); border-left: 4px solid var(--accent); border-radius: 6px; }
+
+/* Clear right and wrong answers in both themes */
+:root {
+  --good: #47e0a6;
+  --good-bg: #113a2c;
+  --good-edge: #47e0a6;
+  --good-solid: #47e0a6;
+  --on-good: #04201a;
+  --bad: #ff8590;
+  --bad-bg: #431b24;
+  --bad-edge: #ff8590;
+  --bad-solid: #ff8590;
+  --on-bad: #2a0810;
+}
+:root[data-theme="light"] {
+  --good: #0b6a43;
+  --good-bg: #cdeedb;
+  --good-edge: #0b6a43;
+  --good-solid: #0b6a43;
+  --on-good: #ffffff;
+  --bad: #9e1227;
+  --bad-bg: #fbd0d7;
+  --bad-edge: #9e1227;
+  --bad-solid: #9e1227;
+  --on-bad: #ffffff;
+}
+
+.choice { position: relative; transition: transform .12s, box-shadow .12s, border-color .12s, background-color .2s; }
+.choice:hover:not(.locked) { transform: translateY(-1px); box-shadow: var(--shadow); }
+.choice.correct { border: 3px solid var(--good-edge); background: var(--good-bg); }
+.choice.wrong { border: 3px solid var(--bad-edge); background: var(--bad-bg); }
+.choice.correct .letter, .choice.wrong .letter { color: var(--text); }
+.choice.correct span:not(.letter):not(.tag), .choice.wrong span:not(.letter):not(.tag) { font-weight: 600; }
+.tag { margin-left: auto; align-self: center; flex: 0 0 auto; font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 999px; white-space: nowrap; }
+.tag.good-tag { background: var(--good-solid); color: var(--on-good); }
+.tag.bad-tag { background: var(--bad-solid); color: var(--on-bad); }
+
+.feedback { min-height: 0; padding: 12px 14px; margin-top: 14px; font-weight: 600; font-size: 17px; border-radius: 8px; }
+.feedback.good { background: var(--good-bg); color: var(--good); border: 2px solid var(--good-edge); }
+.feedback.bad { background: var(--bad-bg); color: var(--bad); border: 2px solid var(--bad-edge); }
+
+.dot.right { background: var(--good-bg); border: 2px solid var(--good-edge); color: var(--text); }
+.dot.wrong { background: var(--bad-bg); border: 2px solid var(--bad-edge); color: var(--text); }
+.review-item.right { border-left-color: var(--good-edge); }
+.review-item.wrong { border-left-color: var(--bad-edge); }
+
+button.primary:hover:not(:disabled) { filter: brightness(1.06); }
+.question { letter-spacing: -0.01em; }
+
+/* spacing between the answer feedback and the reason */
+.why { margin-top: 12px; }
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -2147,6 +2198,8 @@ const Store = (function () {
         else if (i === answer) button.classList.add('wrong');
       }
       if (revealed) button.classList.add('locked');
+      if (revealed && isScored(q) && i === q.answer) button.append(el('span', 'tag good-tag', 'Correct answer'));
+      else if (revealed && isScored(q) && i === answer) button.append(el('span', 'tag bad-tag', 'Your answer'));
       button.setAttribute('aria-pressed', String(answer === i));
       button.addEventListener('click', () => choose(i));
       box.append(button);
