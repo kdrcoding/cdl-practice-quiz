@@ -77,7 +77,7 @@ Click the **Light mode** or **Dark mode** button at the top right.
 - Questions and answers come from three study files. The answers are the ones marked in those files.
 - Exact repeats were removed, keeping one copy.
 - Some text left over from editing the study files was rewritten so it reads clearly. The meaning was kept.
-- Two questions have no marked answer. They are shown but not scored.
+- One question had no marked answer in the study file (combination-vehicles-71, about lowering landing gear when uncoupling a loaded trailer). Answer A was added from web sources (TruckingTruth and CDL Study Buddy), so it is now scored. Check it against your state manual.
 - Two pairs of questions have **conflicting marked answers** in the source. Both are kept as they are until someone checks them against the official manual:
   - "When coupling, the proper position of the fifth wheel is" (`combination-vehicles-60` and `combination-vehicles-76`)
   - "Off-ramp that curves downhill" (`general-knowledge-76` and `general-knowledge-132`)
