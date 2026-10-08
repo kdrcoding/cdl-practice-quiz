@@ -242,6 +242,35 @@ async function answerAll(page, count, choice) {
     await context.close();
   }
 
+  // Answer letters are shuffled for every new test, and the feedback names the right letter
+  {
+    const sctx = await browser.newContext();
+    const sp = await sctx.newPage();
+    const sErrors = [];
+    sp.on('pageerror', e => sErrors.push(e.message));
+    sp.on('dialog', d => d.accept());
+    await sp.goto(pathToFileURL(path.join(root, 'index.html')).href);
+    await sp.evaluate(() => localStorage.clear());
+    await sp.reload();
+    const correctText = 'Generally used when freight is carried part way by rail or ship.';
+    const letters = new Set();
+    for (let k = 0; k < 15; k++) {
+      if (k > 0) await sp.locator('.tabs button[data-nav="home"]').click();
+      await sp.locator('.subject-card').nth(2).getByRole('button', { name: 'Study one by one' }).click();
+      const shown = await sp.locator('.choice > span:nth-child(2)').allTextContents();
+      letters.add(shown.indexOf(correctText));
+      if (k === 0) {
+        const wrong = shown.indexOf(correctText) === 0 ? 1 : 0;
+        await sp.locator('.choice').nth(wrong).click();
+        const feedback = await sp.locator('#feedback').textContent();
+        check(feedback.includes('correct answer is ' + 'ABC'[shown.indexOf(correctText)] + ':'), 'feedback names the letter where the correct answer is shown');
+      }
+    }
+    check(letters.size >= 2, 'the correct answer lands on different letters in different tests (' + [...letters].join(', ') + ')');
+    check(sErrors.length === 0, 'no page errors while shuffling answers');
+    await sctx.close();
+  }
+
   // Explanation: shown after an answer when the question has one, and hidden otherwise
   {
     const ctx = await browser.newContext();

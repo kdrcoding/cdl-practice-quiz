@@ -49,6 +49,17 @@
 
   function current() { return byId.get(session.ids[session.index]); }
 
+  // The order the answers are shown in for this test. Each test gets a new random order.
+  function orderOf(id) {
+    const o = session && session.orders && session.orders[id];
+    return Array.isArray(o) && o.length === 3 ? o : [0, 1, 2];
+  }
+
+  // The letter an answer is shown under in this test (its real position is in the question data).
+  function shownLetter(id, answerIndex) {
+    return LETTERS[orderOf(id).indexOf(answerIndex)];
+  }
+
   function statusOf(id) {
     const s = Store.statsFor(id);
     return s.last === 'wrong' ? 'missed' : s.last === 'right' ? 'correct' : 'new';
@@ -330,8 +341,10 @@
   // ---------- quiz ----------
 
   function begin(fields) {
+    const orders = {};
+    fields.ids.forEach(id => { orders[id] = shuffled([0, 1, 2]); });
     session = Object.assign({
-      answers: {}, flags: [], index: 0, finished: false, spent: 0, runStart: null,
+      answers: {}, flags: [], index: 0, finished: false, spent: 0, runStart: null, orders,
     }, fields);
     Store.setSession(session);
     show('quiz');
@@ -390,14 +403,15 @@
     if (!session || session.finished) return;
     const q = current();
     if (session.mode === 'study' && session.answers[q.id] !== undefined) return;
-    session.answers[q.id] = i;
-    if (session.mode === 'study' && isScored(q)) Store.recordAnswer(q.id, i === q.answer);
+    const picked = orderOf(q.id)[i];
+    session.answers[q.id] = picked;
+    if (session.mode === 'study' && isScored(q)) Store.recordAnswer(q.id, picked === q.answer);
     Store.setSession(session);
     render();
     $('next').focus();
   }
 
-  function toggleFlag() {
+    function toggleFlag() {
     const id = current().id;
     session.flags = session.flags.includes(id) ? session.flags.filter(x => x !== id) : [...session.flags, id];
     Store.setSession(session);
@@ -445,21 +459,23 @@
 
     const box = $('choices');
     box.replaceChildren();
-    q.options.forEach((text, i) => {
+    const order = orderOf(q.id);
+    q.options.forEach((_, i) => {
+      const original = order[i];
+      const text = q.options[original];
       const button = el('button', 'choice');
       button.type = 'button';
       button.append(el('span', 'letter', LETTERS[i]), el('span', null, text));
-      if (answer === i) button.classList.add('selected');
+      if (answer === original) button.classList.add('selected');
       if (revealed && isScored(q)) {
-        if (i === q.answer) button.classList.add('correct');
-        else if (i === answer) button.classList.add('wrong');
+        if (original === q.answer) button.classList.add('correct');
+        else if (original === answer) button.classList.add('wrong');
       }
       if (revealed) button.classList.add('locked');
-      if (revealed && isScored(q) && i === q.answer) button.append(el('span', 'tag good-tag', 'Correct answer'));
-      else if (revealed && isScored(q) && i === answer) button.append(el('span', 'tag bad-tag', 'Your answer'));
-      button.setAttribute('aria-pressed', String(answer === i));
-      button.addEventListener('click', () => choose(i));
-      box.append(button);
+      if (revealed && isScored(q) && original === q.answer) button.append(el('span', 'tag good-tag', 'Correct answer'));
+      else if (revealed && isScored(q) && original === answer) button.append(el('span', 'tag bad-tag', 'Your answer'));
+      button.setAttribute('aria-pressed', String(answer === original));
+      button.addEventListener('click', () => choose(i));      box.append(button);
     });
 
     const feedback = $('feedback');
@@ -472,7 +488,7 @@
       feedback.textContent = 'Correct.';
       feedback.classList.add('good');
     } else {
-      feedback.textContent = 'Not quite. The correct answer is ' + LETTERS[q.answer] + ': ' + q.options[q.answer];
+      feedback.textContent = 'Not quite. The correct answer is ' + shownLetter(q.id, q.answer) + ': ' + q.options[q.answer];
       feedback.classList.add('bad');
     }
 
@@ -605,9 +621,9 @@
       const card = el('article', 'review-item ' + status);
       card.append(el('p', 'muted small', q.subject + ', #' + q.number + ', ' + REVIEW_LABEL[status] + (flagged ? ', flagged' : '')));
       card.append(el('h3', null, q.question));
-      card.append(el('p', null, 'Your answer: ' + (a === undefined ? 'none' : LETTERS[a] + '. ' + q.options[a])));
+      card.append(el('p', null, 'Your answer: ' + (a === undefined ? 'none' : shownLetter(q.id, a) + '. ' + q.options[a])));
       card.append(el('p', null, isScored(q)
-        ? 'Correct answer: ' + LETTERS[q.answer] + '. ' + q.options[q.answer]
+        ? 'Correct answer: ' + shownLetter(q.id, q.answer) + '. ' + q.options[q.answer]
         : 'No answer is marked in the study material, so this question is not scored.'));
       const reason = EXPLANATIONS[q.id];
       if (reason) card.append(el('p', 'small', 'Why: ' + reason + ' ' + UNVERIFIED_NOTE));

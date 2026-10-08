@@ -50,6 +50,10 @@ That's it. You can use the quiz without installing anything.
 - **Study mode:** the correct answer shows as soon as you pick one. Use this to learn.
 - **Exam mode:** you see your score only at the end. Use this to test yourself.
 
+### Answer letters are shuffled
+
+Each test puts the answers in a new random order, so the correct answer is not always C. This makes it harder to memorize letters. Review and results show the letters used in that test.
+
 ### Why this answer
 
 After each answer, a short reason explains why the correct answer is right. These reasons were written from general CDL knowledge, so each one is labelled "not yet checked against the official manual" until it is verified. They live in `explanations.js`.
