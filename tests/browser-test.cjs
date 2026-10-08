@@ -251,7 +251,7 @@ async function answerAll(page, count, choice) {
     await ex.goto(pathToFileURL(path.join(root, 'index.html')).href);
     await ex.evaluate(() => localStorage.clear());
     await ex.reload();
-    await ex.evaluate(() => { QUESTIONS.find(q => q.id === 'general-knowledge-1').why = 'Test explanation for the check.'; });
+    await ex.evaluate(() => { EXPLANATIONS['general-knowledge-1'] = 'Test explanation for the check.'; delete EXPLANATIONS['general-knowledge-2']; });
     await ex.locator('.subject-card').nth(2).getByRole('button', { name: 'Study one by one' }).click();
     check(await ex.locator('#why').isHidden(), 'no explanation box before answering');
     await ex.keyboard.press('1');

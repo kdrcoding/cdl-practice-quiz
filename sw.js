@@ -1,7 +1,7 @@
 // Service worker: lets the quiz open offline after the first visit.
 // Online, it always fetches the newest files and keeps a copy. Offline, it uses that copy.
 // When you change the app's files, raise CACHE_NAME so phones pick up the new version.
-const CACHE_NAME = 'cdl-quiz-v1';
+const CACHE_NAME = 'cdl-quiz-v2';
 const FILES = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const FILES = [
   './questions.js',
   './store.js',
   './app.js',
+  './explanations.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
