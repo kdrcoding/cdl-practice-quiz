@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <title>CDL Practice Quiz</title>
 <style>
-/* Colours are tokens so light and dark stay consistent. data-theme on <html> picks the set. */
+/* Colors are tokens. data-theme on <html> picks the set (dark is the default). */
 :root {
   color-scheme: dark;
   --bg: #15171a;
@@ -18,14 +18,20 @@
   --line: #353a42;
   --accent: #e8c65d;
   --accent-ink: #15171a;
-  --good: #7fdcb5;
-  --good-bg: #1d3a30;
-  --bad: #ff9aa0;
-  --bad-bg: #42262c;
-  --selected-bg: #3a3424;
   --focus: #e8c65d;
+  --selected-bg: #3a3424;
   --shadow: 0 1px 2px rgba(0, 0, 0, .35);
   --radius: 10px;
+  --good: #47e0a6;
+  --good-bg: #113a2c;
+  --good-edge: #47e0a6;
+  --good-solid: #47e0a6;
+  --on-good: #04201a;
+  --bad: #ff8590;
+  --bad-bg: #431b24;
+  --bad-edge: #ff8590;
+  --bad-solid: #ff8590;
+  --on-bad: #2a0810;
 }
 
 :root[data-theme="light"] {
@@ -38,13 +44,19 @@
   --line: #d9d5cc;
   --accent: #a87f12;
   --accent-ink: #ffffff;
-  --good: #14744b;
-  --good-bg: #e2f4ea;
-  --bad: #b21f30;
-  --bad-bg: #fbe5e7;
-  --selected-bg: #faf2d9;
   --focus: #a87f12;
+  --selected-bg: #faf2d9;
   --shadow: 0 1px 2px rgba(20, 20, 20, .06);
+  --good: #0b6a43;
+  --good-bg: #cdeedb;
+  --good-edge: #0b6a43;
+  --good-solid: #0b6a43;
+  --on-good: #ffffff;
+  --bad: #9e1227;
+  --bad-bg: #fbd0d7;
+  --bad-edge: #9e1227;
+  --bad-solid: #9e1227;
+  --on-bad: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -210,9 +222,6 @@ main.wrap { padding-top: 24px; padding-bottom: 20px; }
 .choice.locked:hover { border-color: var(--line); }
 .choice.selected.locked:hover, .choice.correct.locked:hover, .choice.wrong.locked:hover { border-color: inherit; }
 
-.feedback { min-height: 48px; padding-top: 14px; color: var(--muted); margin: 0; }
-.feedback.good { color: var(--good); }
-.feedback.bad { color: var(--bad); }
 
 .nav { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; margin-top: 10px; }
 .nav button { min-width: 120px; }
@@ -316,32 +325,7 @@ label.inline select { width: auto; }
 /* explanation after an answer */
 .why { margin: 0 0 16px; padding: 12px 14px; background: var(--panel-2); border-left: 4px solid var(--accent); border-radius: 6px; }
 
-/* Clear right and wrong answers in both themes */
-:root {
-  --good: #47e0a6;
-  --good-bg: #113a2c;
-  --good-edge: #47e0a6;
-  --good-solid: #47e0a6;
-  --on-good: #04201a;
-  --bad: #ff8590;
-  --bad-bg: #431b24;
-  --bad-edge: #ff8590;
-  --bad-solid: #ff8590;
-  --on-bad: #2a0810;
-}
-:root[data-theme="light"] {
-  --good: #0b6a43;
-  --good-bg: #cdeedb;
-  --good-edge: #0b6a43;
-  --good-solid: #0b6a43;
-  --on-good: #ffffff;
-  --bad: #9e1227;
-  --bad-bg: #fbd0d7;
-  --bad-edge: #9e1227;
-  --bad-solid: #9e1227;
-  --on-bad: #ffffff;
-}
-
+/* Answer colors and tags */
 .choice { position: relative; transition: transform .12s, box-shadow .12s, border-color .12s, background-color .2s; }
 .choice:hover:not(.locked) { transform: translateY(-1px); box-shadow: var(--shadow); }
 .choice.correct { border: 3px solid var(--good-edge); background: var(--good-bg); }
@@ -1747,11 +1731,11 @@ const Store = (function () {
 
 (function () {
   const SUBJECTS = [
-    { name: 'Air Brakes', blurb: 'Braking systems and air pressure', mock: 25 },
-    { name: 'Combination Vehicles', blurb: 'Coupling, trailers and vehicle control', mock: 20 },
-    { name: 'General Knowledge', blurb: 'Inspections, cargo and driving', mock: 50 },
+    { name: 'Air Brakes', blurb: 'Braking systems and air pressure' },
+    { name: 'Combination Vehicles', blurb: 'Coupling, trailers and vehicle control' },
+    { name: 'General Knowledge', blurb: 'Inspections, cargo and driving' },
   ];
-    const LETTERS = ['A', 'B', 'C'];
+  const LETTERS = ['A', 'B', 'C'];
   const VIEWS = ['home', 'quiz', 'results', 'browse', 'stats'];
   // Every reason is written from general CDL knowledge until it is checked against the official manual.
   const UNVERIFIED_NOTE = '(Not yet checked against the official manual.)';
@@ -1914,14 +1898,14 @@ const Store = (function () {
       const mock = el('button', null, 'Mock test');
       mock.type = 'button';
       mock.addEventListener('click', () => startMock(s));
-      const choose = el('button', null, 'Choose questions');
-      choose.type = 'button';
-      choose.addEventListener('click', () => {
+      const pick = el('button', null, 'Choose questions');
+      pick.type = 'button';
+      pick.addEventListener('click', () => {
         $('subject').value = s.name;
         updateSetup();
         $('setup-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
-      actions.append(study, mock, choose);
+      actions.append(study, mock, pick);
       card.append(meter, detail, actions);
       wrap.append(card);
     });
@@ -1947,7 +1931,7 @@ const Store = (function () {
     });
   }
 
-    function renderRulesForm() {
+  function renderRulesForm() {
     const form = $('rules-form');
     form.replaceChildren();
     const rules = Store.rules();
@@ -2083,7 +2067,7 @@ const Store = (function () {
     });
   }
 
-    function setupMessage(text) { $('setup-message').textContent = text; }
+  function setupMessage(text) { $('setup-message').textContent = text; }
 
   // ---------- quiz ----------
 
@@ -2158,7 +2142,7 @@ const Store = (function () {
     $('next').focus();
   }
 
-    function toggleFlag() {
+  function toggleFlag() {
     const id = current().id;
     session.flags = session.flags.includes(id) ? session.flags.filter(x => x !== id) : [...session.flags, id];
     Store.setSession(session);
@@ -2222,7 +2206,8 @@ const Store = (function () {
       if (revealed && isScored(q) && original === q.answer) button.append(el('span', 'tag good-tag', 'Correct answer'));
       else if (revealed && isScored(q) && original === answer) button.append(el('span', 'tag bad-tag', 'Your answer'));
       button.setAttribute('aria-pressed', String(answer === original));
-      button.addEventListener('click', () => choose(i));      box.append(button);
+      button.addEventListener('click', () => choose(i));
+      box.append(button);
     });
 
     const feedback = $('feedback');
@@ -2676,7 +2661,6 @@ const Store = (function () {
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-
 
   Store.load();
   session = Store.session();

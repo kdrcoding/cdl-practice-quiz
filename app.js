@@ -4,11 +4,11 @@
 
 (function () {
   const SUBJECTS = [
-    { name: 'Air Brakes', blurb: 'Braking systems and air pressure', mock: 25 },
-    { name: 'Combination Vehicles', blurb: 'Coupling, trailers and vehicle control', mock: 20 },
-    { name: 'General Knowledge', blurb: 'Inspections, cargo and driving', mock: 50 },
+    { name: 'Air Brakes', blurb: 'Braking systems and air pressure' },
+    { name: 'Combination Vehicles', blurb: 'Coupling, trailers and vehicle control' },
+    { name: 'General Knowledge', blurb: 'Inspections, cargo and driving' },
   ];
-    const LETTERS = ['A', 'B', 'C'];
+  const LETTERS = ['A', 'B', 'C'];
   const VIEWS = ['home', 'quiz', 'results', 'browse', 'stats'];
   // Every reason is written from general CDL knowledge until it is checked against the official manual.
   const UNVERIFIED_NOTE = '(Not yet checked against the official manual.)';
@@ -171,14 +171,14 @@
       const mock = el('button', null, 'Mock test');
       mock.type = 'button';
       mock.addEventListener('click', () => startMock(s));
-      const choose = el('button', null, 'Choose questions');
-      choose.type = 'button';
-      choose.addEventListener('click', () => {
+      const pick = el('button', null, 'Choose questions');
+      pick.type = 'button';
+      pick.addEventListener('click', () => {
         $('subject').value = s.name;
         updateSetup();
         $('setup-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
-      actions.append(study, mock, choose);
+      actions.append(study, mock, pick);
       card.append(meter, detail, actions);
       wrap.append(card);
     });
@@ -204,7 +204,7 @@
     });
   }
 
-    function renderRulesForm() {
+  function renderRulesForm() {
     const form = $('rules-form');
     form.replaceChildren();
     const rules = Store.rules();
@@ -340,7 +340,7 @@
     });
   }
 
-    function setupMessage(text) { $('setup-message').textContent = text; }
+  function setupMessage(text) { $('setup-message').textContent = text; }
 
   // ---------- quiz ----------
 
@@ -415,7 +415,7 @@
     $('next').focus();
   }
 
-    function toggleFlag() {
+  function toggleFlag() {
     const id = current().id;
     session.flags = session.flags.includes(id) ? session.flags.filter(x => x !== id) : [...session.flags, id];
     Store.setSession(session);
@@ -479,7 +479,8 @@
       if (revealed && isScored(q) && original === q.answer) button.append(el('span', 'tag good-tag', 'Correct answer'));
       else if (revealed && isScored(q) && original === answer) button.append(el('span', 'tag bad-tag', 'Your answer'));
       button.setAttribute('aria-pressed', String(answer === original));
-      button.addEventListener('click', () => choose(i));      box.append(button);
+      button.addEventListener('click', () => choose(i));
+      box.append(button);
     });
 
     const feedback = $('feedback');
@@ -933,7 +934,6 @@
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-
 
   Store.load();
   session = Store.session();
