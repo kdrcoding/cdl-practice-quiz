@@ -7,6 +7,12 @@ It covers **air brakes**, **combination vehicles**, and **general knowledge**, w
 - It works offline after you download it.
 - No ads, no sign-up, no tracking.
 
+## Screenshots
+
+![Practice home with the three subjects](docs/screenshot-home.png)
+
+![Study mode after picking an answer](docs/screenshot-study.png)
+
 ## Start in 3 steps
 
 1. **Download** `CDL-Practice-Quiz.html` from this repository. On GitHub, click the file, then click the **Download raw file** button (the arrow pointing down).
