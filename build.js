@@ -11,11 +11,10 @@ const inline = text => text.replace(/<\/(script|style)/gi, '<\\/$1');
 let html = read('index.html');
 // The single file runs its code inline, so the policy allows inline script and style.
 html = html.replace("script-src 'self'; style-src 'self'", "script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
-html = html.replace('<link rel="stylesheet" href="style.css">', () => '<style>\n' + inline(read('style.css')) + '</style>');
-html = html.replace('<script src="questions.js"></script>', () => '<script>\n' + inline(read('questions.js')) + '</script>');
-html = html.replace('<script src="app.js"></script>', () => '<script>\n' + inline(read('app.js')) + '</script>');
+html = html.replace(/<link rel="stylesheet" href="([^"]+)">/g, (_, file) => '<style>\n' + inline(read(file)) + '</style>');
+html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, file) => '<script>\n' + inline(read(file)) + '</script>');
 
-if (html.includes('src="') || html.includes('href="style.css"')) {
+if (/<(script|link)[^>]+src=|href="[a-z]+\.css"/.test(html)) {
   throw new Error('Build left an external file reference behind.');
 }
 

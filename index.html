@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,33 +9,47 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<a class="skip" href="#main">Skip to content</a>
+
 <header class="top">
   <div class="wrap top-inner">
-    <h1>CDL Practice Quiz</h1>
-    <p class="muted">Air brakes, combination vehicles, general knowledge</p>
+    <button class="brand" type="button" data-nav="home" aria-label="CDL Practice Quiz, home">
+      <span class="mark" aria-hidden="true">CDL</span>
+      <span class="brand-text">Practice Quiz</span>
+    </button>
+    <nav class="tabs" aria-label="Main">
+      <button type="button" data-nav="home" aria-current="page">Practice</button>
+      <button type="button" data-nav="browse">Questions</button>
+      <button type="button" data-nav="stats">Progress</button>
+    </nav>
+    <button id="theme" type="button" class="ghost">Light mode</button>
   </div>
 </header>
 
-<main class="wrap">
+<main id="main" class="wrap">
 
-  <section id="setup" aria-labelledby="setup-title">
-    <div class="stats">
-      <div><strong id="stat-total">0</strong><span>Questions</span></div>
-      <div><strong id="stat-missed">0</strong><span>Missed</span></div>
-      <div><strong id="stat-saved">0</strong><span>Bookmarked</span></div>
+  <!-- Practice home -->
+  <section id="home" class="view" aria-labelledby="home-title">
+    <div id="resume-box" class="banner" hidden>
+      <p id="resume-text"></p>
+      <button id="resume" type="button" class="primary">Resume test</button>
     </div>
 
-    <div class="setup-layout">
-      <form class="panel setup-form" id="setup-form" autocomplete="off">
-        <h2 id="setup-title">Set up a test</h2>
+    <h1 id="home-title" class="page-title">Practice by subject</h1>
+    <div id="subject-cards" class="subject-cards"></div>
+
+    <div class="home-grid">
+      <form id="setup-form" class="panel" autocomplete="off">
+        <h2>Set up a practice test</h2>
 
         <label for="subject">Subject</label>
         <select id="subject"></select>
 
         <label for="mode">Mode</label>
         <select id="mode">
-          <option value="study">Study: answers as you go</option>
-          <option value="exam">Exam: answers at the end</option>
+          <option value="study">Study: see the answer after each question</option>
+          <option value="exam">Exam: see results at the end</option>
         </select>
 
         <label for="length">Number of questions</label>
@@ -51,8 +65,9 @@
         <label for="pool">Which questions</label>
         <select id="pool">
           <option value="all">All questions</option>
-          <option value="missed">Only questions I missed</option>
-          <option value="saved">Only bookmarked questions</option>
+          <option value="missed">Questions I got wrong last time</option>
+          <option value="new">Questions I have not seen yet</option>
+          <option value="saved">Bookmarked questions</option>
         </select>
 
         <label class="check"><input id="shuffle" type="checkbox" checked> Shuffle the order</label>
@@ -60,31 +75,39 @@
         <p id="match" class="muted small" aria-live="polite"></p>
 
         <div class="button-row">
-          <button id="start" type="button" class="primary">Start test</button>
+          <button id="start" type="submit" class="primary">Start test</button>
           <button id="study-all" type="button">Study every question</button>
         </div>
-        <p id="setup-message" class="small" role="status"></p>
+        <p id="setup-message" class="small error" role="status"></p>
       </form>
 
-      <aside class="panel side">
-        <h2>Good to know</h2>
-        <ul class="plain">
+      <div class="panel">
+        <h2>Mock tests</h2>
+        <p class="muted small">Timed, exam-style sets in the usual layout. Passing is 80% of the scored questions. Layouts vary by state, so check your state's test rules.</p>
+        <div id="mock-list" class="mock-list"></div>
+        <h3 class="side-title">Good to know</h3>
+        <ul class="plain small">
           <li>Everything runs in this browser. No ads, no accounts, no tracking.</li>
-          <li>Your missed questions, bookmarks and the test in progress are saved on this device only.</li>
-          <li>Keyboard: 1, 2, 3 pick an answer. Left and right arrows move. S bookmarks.</li>
-          <li>Answers follow the ones marked in the study material. If one looks wrong, tell the maintainers.</li>
+          <li>Progress is saved on this device. Save a backup from the Progress page.</li>
+          <li>Keys during a test: 1, 2, 3 answer. Arrow keys move. F flags. S bookmarks.</li>
+          <li>Answers follow the ones marked in the study material.</li>
         </ul>
-        <button id="resume" type="button" class="wide" hidden></button>
-        <button id="reset" type="button" class="wide danger-text">Reset my progress</button>
-      </aside>
+      </div>
     </div>
   </section>
 
-  <section id="quiz" hidden aria-label="Test in progress">
+  <!-- Quiz -->
+  <section id="quiz" class="view" hidden aria-label="Test in progress">
     <div class="quiz-top">
-      <span id="position"></span>
-      <span id="topic" class="muted"></span>
-      <button id="bookmark" type="button" aria-pressed="false">Bookmark</button>
+      <div>
+        <span id="position" class="strong"></span>
+        <span id="topic" class="muted"></span>
+      </div>
+      <div class="quiz-top-right">
+        <span id="timer" class="muted"></span>
+        <button id="flag" type="button" class="ghost" aria-pressed="false">Flag</button>
+        <button id="bookmark" type="button" class="ghost" aria-pressed="false">Bookmark</button>
+      </div>
     </div>
     <div class="bar" aria-hidden="true"><div id="progress"></div></div>
 
@@ -98,30 +121,37 @@
     </div>
     <div class="quiz-tools">
       <button id="finish" type="button">Finish test</button>
-      <button id="exit" type="button">Save and exit</button>
+      <button id="exit" type="button" class="ghost">Save and exit</button>
     </div>
 
     <nav id="grid" class="grid" aria-label="Questions in this test"></nav>
+    <p class="hint muted small">Keys: 1, 2, 3 answer. Left and right arrows move. F flags. S bookmarks.</p>
   </section>
 
-  <section id="results" hidden aria-labelledby="results-title">
-    <h2 id="results-title">Test results</h2>
-    <p id="score" class="score"></p>
-    <p id="result-text"></p>
+  <!-- Results -->
+  <section id="results" class="view" hidden aria-labelledby="results-title">
+    <h1 id="results-title" class="page-title">Test results</h1>
+    <div class="result-card panel">
+      <p id="score" class="score"></p>
+      <p id="verdict" class="verdict" hidden></p>
+      <p id="result-text" class="muted"></p>
+      <p id="result-time" class="muted small"></p>
+    </div>
     <div id="breakdown" class="breakdown"></div>
 
     <div class="button-row">
       <button id="retry" type="button" class="primary">Practice the ones I missed</button>
-      <button id="back-setup" type="button">Back to setup</button>
+      <button id="home-from-results" type="button">Back to practice</button>
     </div>
 
     <div class="review-head">
-      <h3>Review</h3>
+      <h2>Review</h2>
       <label class="inline" for="review-filter">Show
         <select id="review-filter">
           <option value="all">All questions</option>
           <option value="wrong">Wrong</option>
           <option value="unanswered">Unanswered</option>
+          <option value="flagged">Flagged</option>
           <option value="ungraded">Not scored</option>
         </select>
       </label>
@@ -129,13 +159,66 @@
     <div id="review"></div>
   </section>
 
+  <!-- Browse all questions -->
+  <section id="browse" class="view" hidden aria-labelledby="browse-title">
+    <h1 id="browse-title" class="page-title">All questions</h1>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search questions and answers" aria-label="Search questions">
+      <select id="browse-subject" aria-label="Subject"></select>
+      <select id="browse-status" aria-label="Show">
+        <option value="all">Every question</option>
+        <option value="new">Not seen yet</option>
+        <option value="missed">Last answer wrong</option>
+        <option value="correct">Last answer right</option>
+        <option value="saved">Bookmarked</option>
+      </select>
+    </div>
+    <p id="browse-count" class="muted small" aria-live="polite"></p>
+    <div id="browse-list" class="browse-list"></div>
+  </section>
+
+  <!-- Progress and backup -->
+  <section id="stats" class="view" hidden aria-labelledby="stats-title">
+    <h1 id="stats-title" class="page-title">Your progress</h1>
+    <div id="stat-cards" class="stat-cards"></div>
+
+    <div class="two-col">
+      <div class="panel">
+        <h2>By subject</h2>
+        <div id="subject-table"></div>
+      </div>
+      <div class="panel">
+        <h2>Questions you miss most</h2>
+        <div id="most-missed"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Recent tests</h2>
+      <div id="recent"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Your data</h2>
+      <p class="muted small">Stored only in this browser. Save a backup file to keep it or to move it to another computer.</p>
+      <div class="button-row">
+        <button id="export" type="button">Save backup file</button>
+        <label class="button-like" for="import">Load backup file</label>
+        <input id="import" type="file" accept="application/json,.json" hidden>
+        <button id="reset" type="button" class="danger">Erase all progress</button>
+      </div>
+      <p id="data-message" class="small" role="status"></p>
+    </div>
+  </section>
+
 </main>
 
-<footer class="wrap small muted foot">
-  Practice material only. Check your state's official CDL manual for the rules that apply to you.
+<footer class="wrap foot muted small">
+  Practice material only. Check your state's current CDL manual for the rules that apply to you.
 </footer>
 
 <script src="questions.js"></script>
+<script src="store.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

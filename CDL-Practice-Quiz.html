@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,39 +7,44 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <title>CDL Practice Quiz</title>
 <style>
+/* Colours are tokens so light and dark stay consistent. data-theme on <html> picks the set. */
 :root {
-  color-scheme: light dark;
-  --bg: #17191c;
-  --panel: #22252a;
-  --text: #f2f4f5;
-  --muted: #b0b5be;
-  --line: #3a3e46;
+  color-scheme: dark;
+  --bg: #15171a;
+  --panel: #1f2227;
+  --panel-2: #272b31;
+  --text: #f1f3f5;
+  --muted: #aab1bb;
+  --line: #353a42;
   --accent: #e8c65d;
-  --accent-ink: #17191c;
-  --good: #78d8b0;
-  --good-bg: #20382f;
-  --bad: #ff969c;
-  --bad-bg: #3f282d;
-  --selected-bg: #393526;
+  --accent-ink: #15171a;
+  --good: #7fdcb5;
+  --good-bg: #1d3a30;
+  --bad: #ff9aa0;
+  --bad-bg: #42262c;
+  --selected-bg: #3a3424;
   --focus: #e8c65d;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  --radius: 10px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bg: #f6f5f2;
-    --panel: #ffffff;
-    --text: #1d2025;
-    --muted: #5a6068;
-    --line: #d9d6cf;
-    --accent: #9a7410;
-    --accent-ink: #ffffff;
-    --good: #17794f;
-    --good-bg: #e4f5ec;
-    --bad: #b42333;
-    --bad-bg: #fbe6e8;
-    --selected-bg: #fbf3da;
-    --focus: #9a7410;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f4f0;
+  --panel: #ffffff;
+  --panel-2: #f1efe9;
+  --text: #1c1f24;
+  --muted: #5b626c;
+  --line: #d9d5cc;
+  --accent: #a87f12;
+  --accent-ink: #ffffff;
+  --good: #14744b;
+  --good-bg: #e2f4ea;
+  --bad: #b21f30;
+  --bad-bg: #fbe5e7;
+  --selected-bg: #faf2d9;
+  --focus: #a87f12;
+  --shadow: 0 1px 2px rgba(20, 20, 20, .06);
 }
 
 * { box-sizing: border-box; }
@@ -52,12 +57,12 @@ body {
   font: 16px/1.55 system-ui, "Segoe UI", Roboto, sans-serif;
 }
 
-h1, h2, h3 { line-height: 1.3; margin: 0 0 14px; }
-h1 { font-size: 24px; margin: 0; }
-h2 { font-size: 20px; }
+h1, h2, h3 { line-height: 1.3; margin: 0 0 12px; }
+h1.page-title { font-size: 26px; margin: 8px 0 18px; }
+h2 { font-size: 19px; }
 h3 { font-size: 17px; }
 p { margin: 0 0 10px; }
-ul.plain { margin: 0 0 14px; padding-left: 18px; }
+ul.plain { margin: 0 0 12px; padding-left: 18px; }
 ul.plain li { margin-bottom: 8px; }
 
 button, select, input {
@@ -65,74 +70,147 @@ button, select, input {
   color: var(--text);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 10px 14px;
 }
 button { cursor: pointer; }
 button:hover:not(:disabled), select:hover { border-color: var(--accent); }
 button:disabled { opacity: .45; cursor: default; }
-button:focus-visible, select:focus-visible, input:focus-visible {
+button:focus-visible, select:focus-visible, input:focus-visible, .button-like:focus-within {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
 .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
-.danger-text { color: var(--bad); }
-.wide { width: 100%; margin-top: 10px; }
-select, input[type="number"] { width: 100%; }
+.ghost { background: transparent; }
+.danger { color: var(--bad); }
+.error { color: var(--bad); }
+select, input[type="number"], input[type="search"] { width: 100%; }
 input[type="checkbox"] { width: 18px; height: 18px; padding: 0; accent-color: var(--accent); }
 
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-.top { border-bottom: 1px solid var(--line); padding: 22px 0; }
-.top-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; }
-main.wrap { padding-top: 28px; padding-bottom: 40px; }
-.foot { padding-top: 10px; padding-bottom: 30px; }
+.button-like {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--panel);
+}
+.button-like:hover { border-color: var(--accent); }
 
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 .muted { color: var(--muted); }
 .small { font-size: 14px; }
-.hint { font-size: 14px; }
+.strong { font-weight: 700; }
+.hint { margin-top: 14px; }
+.foot { padding: 18px 0 32px; }
+
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 8px 12px;
+  z-index: 10;
+}
+.skip:focus { left: 12px; top: 12px; }
+
+/* header */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.top-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; background: none; border: none; padding: 0; font-weight: 700; }
+.brand:hover { border: none; }
+.mark {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: .04em;
+}
+.brand-text { font-size: 18px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { background: none; border-color: transparent; color: var(--muted); padding: 8px 12px; }
+.tabs button:hover { border-color: var(--line); color: var(--text); }
+.tabs button[aria-current="page"] { color: var(--text); border-color: var(--accent); }
+
+main.wrap { padding-top: 24px; padding-bottom: 20px; }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 22px;
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
 }
 
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
-.stats > div {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
   padding: 14px 18px;
+  margin-bottom: 20px;
 }
-.stats strong { display: block; font-size: 28px; line-height: 1.1; }
-.stats span { color: var(--muted); font-size: 14px; }
+.banner p { margin: 0; }
 
-.setup-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.setup-form label { display: block; margin: 16px 0 6px; color: var(--muted); font-size: 14px; }
-.setup-form label.check { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 16px; }
-.setup-form #custom { margin-top: 8px; }
-.setup-form #match { margin: 16px 0 0; }
+/* home */
+.subject-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+.subject-card h2 { margin-bottom: 4px; }
+.subject-card .bar { margin: 14px 0 10px; }
+.subject-card .button-row { margin-top: 14px; }
+
+.home-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+#setup-form label { display: block; margin: 16px 0 6px; color: var(--muted); font-size: 14px; }
+#setup-form label.check { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 16px; }
+#setup-form #custom { margin-top: 8px; }
+#setup-form #match { margin: 16px 0 0; }
 .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.button-row button { flex: 1 1 auto; }
-#setup-message { color: var(--bad); min-height: 1.4em; margin-top: 10px; }
+.button-row > * { flex: 1 1 auto; }
+#setup-message { min-height: 1.4em; margin: 10px 0 0; }
+
+.mock-list { display: grid; gap: 10px; margin: 14px 0 6px; }
+.mock-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel-2); border-radius: 8px; padding: 12px 14px; }
+.mock-row p { margin: 0; }
+.side-title { margin-top: 22px; }
+
+/* bar */
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > div { height: 100%; width: 0; background: var(--accent); transition: width .25s; }
 
 /* quiz */
-.quiz-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
-.bar { height: 6px; background: var(--line); border-radius: 3px; margin: 14px 0 22px; overflow: hidden; }
-.bar > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.quiz-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px; font-size: 14px; }
+.quiz-top-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.quiz-top-right #timer { font-variant-numeric: tabular-nums; margin-right: 6px; }
+.quiz-top button { padding: 7px 12px; font-size: 14px; }
+#progress { transition: width .25s; }
+.bar { margin: 14px 0 22px; }
 .question { font-size: 23px; line-height: 1.5; margin: 6px 0 22px; outline: none; }
 .choices { display: grid; gap: 12px; }
-.choice { display: flex; gap: 14px; align-items: flex-start; text-align: left; width: 100%; padding: 16px 18px; min-height: 60px; }
+.choice { display: flex; gap: 14px; align-items: flex-start; text-align: left; width: 100%; padding: 16px 18px; min-height: 60px; font-size: 16px; }
 .choice .letter { flex: 0 0 28px; font-weight: 700; color: var(--muted); }
 .choice.selected { border-color: var(--accent); background: var(--selected-bg); }
 .choice.correct { border-color: var(--good); background: var(--good-bg); }
 .choice.wrong { border-color: var(--bad); background: var(--bad-bg); }
 .choice.locked { cursor: default; }
 .choice.locked:hover { border-color: var(--line); }
-.choice.correct.locked:hover, .choice.wrong.locked:hover, .choice.selected.locked:hover { border-color: inherit; }
+.choice.selected.locked:hover, .choice.correct.locked:hover, .choice.wrong.locked:hover { border-color: inherit; }
 
-.feedback { min-height: 48px; padding-top: 14px; color: var(--muted); }
+.feedback { min-height: 48px; padding-top: 14px; color: var(--muted); margin: 0; }
 .feedback.good { color: var(--good); }
 .feedback.bad { color: var(--bad); }
 
@@ -145,66 +223,121 @@ main.wrap { padding-top: 28px; padding-bottom: 40px; }
 .dot.answered { border-color: var(--muted); }
 .dot.right { background: var(--good-bg); border-color: var(--good); }
 .dot.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.dot.flagged { box-shadow: inset 0 -3px 0 var(--accent); }
 .dot.active { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* results */
-.score { font-size: 44px; font-weight: 700; line-height: 1.1; margin: 4px 0 6px; }
-.breakdown { margin: 14px 0 22px; }
+.result-card { text-align: left; margin-bottom: 18px; }
+.score { font-size: 46px; font-weight: 800; line-height: 1.1; margin: 0 0 6px; }
+.verdict { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+.verdict.good { color: var(--good); }
+.verdict.bad { color: var(--bad); }
+.breakdown { margin-bottom: 16px; }
 .breakdown .row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); }
 .review-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin: 30px 0 12px; }
-.review-head h3 { margin: 0; }
+.review-head h2 { margin: 0; }
 label.inline { color: var(--muted); font-size: 14px; display: flex; align-items: center; gap: 8px; }
 label.inline select { width: auto; }
-.review-item { background: var(--panel); border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px; padding: 16px 18px; margin-bottom: 12px; }
+.review-item { background: var(--panel); border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px; }
 .review-item.right { border-left-color: var(--good); }
 .review-item.wrong { border-left-color: var(--bad); }
 .review-item.unanswered { border-left-color: var(--muted); }
 .review-item.ungraded { border-left-color: var(--line); }
-.review-item h3 { font-size: 17px; margin: 4px 0 8px; }
+.review-item h3 { margin: 4px 0 8px; }
 .review-item p { margin: 4px 0; }
-.review-item .small { font-size: 14px; }
 
-@media (max-width: 820px) {
-  .setup-layout { grid-template-columns: 1fr; }
+/* browse */
+.toolbar { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr) minmax(0, 1fr); gap: 10px; margin-bottom: 10px; }
+.browse-list { display: grid; gap: 12px; }
+.browse-card { padding: 16px 18px; }
+.browse-card h3 { margin: 6px 0 10px; font-size: 17px; }
+.browse-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; }
+.badge { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.badge.missed { color: var(--bad); border-color: var(--bad); }
+.badge.correct { color: var(--good); border-color: var(--good); }
+.browse-answer { margin-bottom: 12px; }
+.browse-option { margin: 4px 0; padding: 6px 10px; border-radius: 6px; }
+.browse-option.correct { background: var(--good-bg); color: var(--good); }
+.browse-card .button-row { margin-top: 6px; }
+.browse-card .button-row > * { flex: 0 0 auto; }
+
+/* progress */
+.stat-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat-card { padding: 14px 16px; display: grid; gap: 2px; }
+.stat-card strong { font-size: 24px; line-height: 1.2; }
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; }
+.two-col > .panel { margin: 0; }
+.subject-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 6px 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.subject-row .bar { grid-column: 1 / -1; }
+.recent-row { display: grid; grid-template-columns: 1.2fr 1.6fr 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); align-items: baseline; }
+#most-missed p { border-top: 1px solid var(--line); padding: 8px 0; margin: 0; }
+#most-missed p:first-child { border-top: none; }
+#recent, #subject-table { margin-bottom: 0; }
+.panel > h2 + .muted { margin-top: -4px; }
+
+@media (max-width: 900px) {
+  .subject-cards { grid-template-columns: 1fr; }
+  .home-grid, .two-col { grid-template-columns: 1fr; }
+  .stat-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .wrap { padding: 0 16px; }
   .question { font-size: 20px; }
   .nav button { min-width: 0; flex: 1 1 0; }
   .dot { width: 36px; }
+  .score { font-size: 40px; }
+  .subject-row, .recent-row { grid-template-columns: 1fr; }
+  .tabs button { padding: 7px 9px; font-size: 14px; }
+  .brand-text { display: none; }
 }
-@media (max-width: 420px) {
-  .wrap { padding: 0 16px; }
-  .panel { padding: 18px; }
-  .score { font-size: 38px; }
-}
+
+/* spacing between full-width panels on the progress page */
+#stats > .panel { margin-bottom: 18px; }
 </style>
 </head>
 <body>
+
+<a class="skip" href="#main">Skip to content</a>
+
 <header class="top">
   <div class="wrap top-inner">
-    <h1>CDL Practice Quiz</h1>
-    <p class="muted">Air brakes, combination vehicles, general knowledge</p>
+    <button class="brand" type="button" data-nav="home" aria-label="CDL Practice Quiz, home">
+      <span class="mark" aria-hidden="true">CDL</span>
+      <span class="brand-text">Practice Quiz</span>
+    </button>
+    <nav class="tabs" aria-label="Main">
+      <button type="button" data-nav="home" aria-current="page">Practice</button>
+      <button type="button" data-nav="browse">Questions</button>
+      <button type="button" data-nav="stats">Progress</button>
+    </nav>
+    <button id="theme" type="button" class="ghost">Light mode</button>
   </div>
 </header>
 
-<main class="wrap">
+<main id="main" class="wrap">
 
-  <section id="setup" aria-labelledby="setup-title">
-    <div class="stats">
-      <div><strong id="stat-total">0</strong><span>Questions</span></div>
-      <div><strong id="stat-missed">0</strong><span>Missed</span></div>
-      <div><strong id="stat-saved">0</strong><span>Bookmarked</span></div>
+  <!-- Practice home -->
+  <section id="home" class="view" aria-labelledby="home-title">
+    <div id="resume-box" class="banner" hidden>
+      <p id="resume-text"></p>
+      <button id="resume" type="button" class="primary">Resume test</button>
     </div>
 
-    <div class="setup-layout">
-      <form class="panel setup-form" id="setup-form" autocomplete="off">
-        <h2 id="setup-title">Set up a test</h2>
+    <h1 id="home-title" class="page-title">Practice by subject</h1>
+    <div id="subject-cards" class="subject-cards"></div>
+
+    <div class="home-grid">
+      <form id="setup-form" class="panel" autocomplete="off">
+        <h2>Set up a practice test</h2>
 
         <label for="subject">Subject</label>
         <select id="subject"></select>
 
         <label for="mode">Mode</label>
         <select id="mode">
-          <option value="study">Study: answers as you go</option>
-          <option value="exam">Exam: answers at the end</option>
+          <option value="study">Study: see the answer after each question</option>
+          <option value="exam">Exam: see results at the end</option>
         </select>
 
         <label for="length">Number of questions</label>
@@ -220,8 +353,9 @@ label.inline select { width: auto; }
         <label for="pool">Which questions</label>
         <select id="pool">
           <option value="all">All questions</option>
-          <option value="missed">Only questions I missed</option>
-          <option value="saved">Only bookmarked questions</option>
+          <option value="missed">Questions I got wrong last time</option>
+          <option value="new">Questions I have not seen yet</option>
+          <option value="saved">Bookmarked questions</option>
         </select>
 
         <label class="check"><input id="shuffle" type="checkbox" checked> Shuffle the order</label>
@@ -229,31 +363,39 @@ label.inline select { width: auto; }
         <p id="match" class="muted small" aria-live="polite"></p>
 
         <div class="button-row">
-          <button id="start" type="button" class="primary">Start test</button>
+          <button id="start" type="submit" class="primary">Start test</button>
           <button id="study-all" type="button">Study every question</button>
         </div>
-        <p id="setup-message" class="small" role="status"></p>
+        <p id="setup-message" class="small error" role="status"></p>
       </form>
 
-      <aside class="panel side">
-        <h2>Good to know</h2>
-        <ul class="plain">
+      <div class="panel">
+        <h2>Mock tests</h2>
+        <p class="muted small">Timed, exam-style sets in the usual layout. Passing is 80% of the scored questions. Layouts vary by state, so check your state's test rules.</p>
+        <div id="mock-list" class="mock-list"></div>
+        <h3 class="side-title">Good to know</h3>
+        <ul class="plain small">
           <li>Everything runs in this browser. No ads, no accounts, no tracking.</li>
-          <li>Your missed questions, bookmarks and the test in progress are saved on this device only.</li>
-          <li>Keyboard: 1, 2, 3 pick an answer. Left and right arrows move. S bookmarks.</li>
-          <li>Answers follow the ones marked in the study material. If one looks wrong, tell the maintainers.</li>
+          <li>Progress is saved on this device. Save a backup from the Progress page.</li>
+          <li>Keys during a test: 1, 2, 3 answer. Arrow keys move. F flags. S bookmarks.</li>
+          <li>Answers follow the ones marked in the study material.</li>
         </ul>
-        <button id="resume" type="button" class="wide" hidden></button>
-        <button id="reset" type="button" class="wide danger-text">Reset my progress</button>
-      </aside>
+      </div>
     </div>
   </section>
 
-  <section id="quiz" hidden aria-label="Test in progress">
+  <!-- Quiz -->
+  <section id="quiz" class="view" hidden aria-label="Test in progress">
     <div class="quiz-top">
-      <span id="position"></span>
-      <span id="topic" class="muted"></span>
-      <button id="bookmark" type="button" aria-pressed="false">Bookmark</button>
+      <div>
+        <span id="position" class="strong"></span>
+        <span id="topic" class="muted"></span>
+      </div>
+      <div class="quiz-top-right">
+        <span id="timer" class="muted"></span>
+        <button id="flag" type="button" class="ghost" aria-pressed="false">Flag</button>
+        <button id="bookmark" type="button" class="ghost" aria-pressed="false">Bookmark</button>
+      </div>
     </div>
     <div class="bar" aria-hidden="true"><div id="progress"></div></div>
 
@@ -267,30 +409,37 @@ label.inline select { width: auto; }
     </div>
     <div class="quiz-tools">
       <button id="finish" type="button">Finish test</button>
-      <button id="exit" type="button">Save and exit</button>
+      <button id="exit" type="button" class="ghost">Save and exit</button>
     </div>
 
     <nav id="grid" class="grid" aria-label="Questions in this test"></nav>
+    <p class="hint muted small">Keys: 1, 2, 3 answer. Left and right arrows move. F flags. S bookmarks.</p>
   </section>
 
-  <section id="results" hidden aria-labelledby="results-title">
-    <h2 id="results-title">Test results</h2>
-    <p id="score" class="score"></p>
-    <p id="result-text"></p>
+  <!-- Results -->
+  <section id="results" class="view" hidden aria-labelledby="results-title">
+    <h1 id="results-title" class="page-title">Test results</h1>
+    <div class="result-card panel">
+      <p id="score" class="score"></p>
+      <p id="verdict" class="verdict" hidden></p>
+      <p id="result-text" class="muted"></p>
+      <p id="result-time" class="muted small"></p>
+    </div>
     <div id="breakdown" class="breakdown"></div>
 
     <div class="button-row">
       <button id="retry" type="button" class="primary">Practice the ones I missed</button>
-      <button id="back-setup" type="button">Back to setup</button>
+      <button id="home-from-results" type="button">Back to practice</button>
     </div>
 
     <div class="review-head">
-      <h3>Review</h3>
+      <h2>Review</h2>
       <label class="inline" for="review-filter">Show
         <select id="review-filter">
           <option value="all">All questions</option>
           <option value="wrong">Wrong</option>
           <option value="unanswered">Unanswered</option>
+          <option value="flagged">Flagged</option>
           <option value="ungraded">Not scored</option>
         </select>
       </label>
@@ -298,10 +447,62 @@ label.inline select { width: auto; }
     <div id="review"></div>
   </section>
 
+  <!-- Browse all questions -->
+  <section id="browse" class="view" hidden aria-labelledby="browse-title">
+    <h1 id="browse-title" class="page-title">All questions</h1>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search questions and answers" aria-label="Search questions">
+      <select id="browse-subject" aria-label="Subject"></select>
+      <select id="browse-status" aria-label="Show">
+        <option value="all">Every question</option>
+        <option value="new">Not seen yet</option>
+        <option value="missed">Last answer wrong</option>
+        <option value="correct">Last answer right</option>
+        <option value="saved">Bookmarked</option>
+      </select>
+    </div>
+    <p id="browse-count" class="muted small" aria-live="polite"></p>
+    <div id="browse-list" class="browse-list"></div>
+  </section>
+
+  <!-- Progress and backup -->
+  <section id="stats" class="view" hidden aria-labelledby="stats-title">
+    <h1 id="stats-title" class="page-title">Your progress</h1>
+    <div id="stat-cards" class="stat-cards"></div>
+
+    <div class="two-col">
+      <div class="panel">
+        <h2>By subject</h2>
+        <div id="subject-table"></div>
+      </div>
+      <div class="panel">
+        <h2>Questions you miss most</h2>
+        <div id="most-missed"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Recent tests</h2>
+      <div id="recent"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Your data</h2>
+      <p class="muted small">Stored only in this browser. Save a backup file to keep it or to move it to another computer.</p>
+      <div class="button-row">
+        <button id="export" type="button">Save backup file</button>
+        <label class="button-like" for="import">Load backup file</label>
+        <input id="import" type="file" accept="application/json,.json" hidden>
+        <button id="reset" type="button" class="danger">Erase all progress</button>
+      </div>
+      <p id="data-message" class="small" role="status"></p>
+    </div>
+  </section>
+
 </main>
 
-<footer class="wrap small muted foot">
-  Practice material only. Check your state's official CDL manual for the rules that apply to you.
+<footer class="wrap foot muted small">
+  Practice material only. Check your state's current CDL manual for the rules that apply to you.
 </footer>
 
 <script>
@@ -760,48 +961,176 @@ const QUESTIONS = [
 <script>
 'use strict';
 
-// CDL practice quiz. Reads QUESTIONS from questions.js.
-// Progress is stored only in this browser's localStorage. Nothing is sent anywhere.
+// Everything the app remembers lives here. It is saved in this browser's localStorage.
+// Nothing is sent anywhere. Users can export a backup file and import it on another device.
+
+const Store = (function () {
+  const KEY = 'cdl-quiz-data-v3';
+  const FORMAT = 'cdl-quiz-progress';
+  const byId = new Map(QUESTIONS.map(q => [q.id, q]));
+
+  let data = blank();
+
+  function blank() {
+    return { questions: {}, saved: [], attempts: [], session: null, theme: null };
+  }
+
+  function count(value) {
+    return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+  }
+
+  function validAttempt(a) {
+    return a && typeof a === 'object' && Number.isFinite(a.at)
+      && typeof a.subject === 'string' && (a.kind === 'practice' || a.kind === 'mock')
+      && Number.isInteger(a.total) && Number.isInteger(a.scored) && Number.isInteger(a.right);
+  }
+
+  function validSession(s) {
+    if (!s || typeof s !== 'object') return false;
+    if (!Array.isArray(s.ids) || s.ids.length === 0 || !s.ids.every(id => byId.has(id))) return false;
+    if (!Number.isInteger(s.index) || s.index < 0 || s.index >= s.ids.length) return false;
+    if (s.mode !== 'study' && s.mode !== 'exam') return false;
+    if (s.kind !== 'practice' && s.kind !== 'mock') return false;
+    if (typeof s.answers !== 'object' || s.answers === null) return false;
+    return true;
+  }
+
+  function sanitize(raw) {
+    const out = blank();
+    const stats = raw.questions && typeof raw.questions === 'object' ? raw.questions : {};
+    for (const id of Object.keys(stats)) {
+      const s = stats[id];
+      if (!byId.has(id) || !s || typeof s !== 'object') continue;
+      out.questions[id] = {
+        seen: count(s.seen),
+        right: count(s.right),
+        wrong: count(s.wrong),
+        last: s.last === 'right' || s.last === 'wrong' ? s.last : null,
+      };
+    }
+    out.saved = (Array.isArray(raw.saved) ? raw.saved : []).filter((id, i, all) => byId.has(id) && all.indexOf(id) === i);
+    out.attempts = (Array.isArray(raw.attempts) ? raw.attempts : []).filter(validAttempt).slice(-200);
+    out.session = validSession(raw.session) ? raw.session : null;
+    out.theme = raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : null;
+    return out;
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch (e) {
+      // Storage can be blocked (private windows). The app keeps working for this visit.
+    }
+  }
+
+  function load() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEY));
+      data = raw && typeof raw === 'object' ? sanitize(raw) : blank();
+    } catch (e) {
+      data = blank();
+    }
+    return data;
+  }
+
+  // ----- questions -----
+
+  function statsFor(id) {
+    return data.questions[id] || { seen: 0, right: 0, wrong: 0, last: null };
+  }
+
+  function recordAnswer(id, isCorrect) {
+    const s = data.questions[id] || (data.questions[id] = { seen: 0, right: 0, wrong: 0, last: null });
+    s.seen++;
+    if (isCorrect) s.right++;
+    else s.wrong++;
+    s.last = isCorrect ? 'right' : 'wrong';
+    save();
+  }
+
+  function missedIds() {
+    return Object.keys(data.questions).filter(id => data.questions[id].last === 'wrong');
+  }
+
+  function isSaved(id) { return data.saved.includes(id); }
+
+  function toggleSaved(id) {
+    data.saved = isSaved(id) ? data.saved.filter(x => x !== id) : [...data.saved, id];
+    save();
+  }
+
+  // ----- tests -----
+
+  function addAttempt(attempt) {
+    data.attempts = [...data.attempts, attempt].slice(-200);
+    save();
+  }
+
+  function setSession(session) {
+    data.session = session;
+    save();
+  }
+
+  function session() { return data.session; }
+
+  // ----- settings and backup -----
+
+  function theme() { return data.theme; }
+
+  function setTheme(value) {
+    data.theme = value;
+    save();
+  }
+
+  function reset() {
+    data = blank();
+    save();
+  }
+
+  function exportText() {
+    return JSON.stringify({ format: FORMAT, version: 3, exportedAt: new Date().toISOString(), data }, null, 2);
+  }
+
+  function importText(text) {
+    const parsed = JSON.parse(text);
+    if (!parsed || parsed.format !== FORMAT || !parsed.data || typeof parsed.data !== 'object') {
+      throw new Error('This file is not a CDL quiz progress backup.');
+    }
+    data = sanitize(parsed.data);
+    save();
+  }
+
+  return {
+    load, statsFor, recordAnswer, missedIds, isSaved, toggleSaved,
+    addAttempt, setSession, session, theme, setTheme, reset, exportText, importText,
+    get attempts() { return data.attempts; },
+    get savedIds() { return data.saved; },
+  };
+})();
+</script>
+<script>
+'use strict';
+
+// CDL practice quiz. Reads QUESTIONS (questions.js) and Store (store.js).
 
 (function () {
-  const STORAGE_KEY = 'cdl-quiz-progress-v2';
-  const SUBJECTS = ['Air Brakes', 'Combination Vehicles', 'General Knowledge'];
+  const SUBJECTS = [
+    { name: 'Air Brakes', blurb: 'Braking systems and air pressure', mock: 25 },
+    { name: 'Combination Vehicles', blurb: 'Coupling, trailers and vehicle control', mock: 20 },
+    { name: 'General Knowledge', blurb: 'Inspections, cargo and driving', mock: 50 },
+  ];
+  const PASS_MARK = 0.8;
   const LETTERS = ['A', 'B', 'C'];
-  const STATUS_LABEL = { right: 'Correct', wrong: 'Wrong', unanswered: 'Unanswered', ungraded: 'Not scored' };
+  const VIEWS = ['home', 'quiz', 'results', 'browse', 'stats'];
+  const REVIEW_LABEL = { right: 'Correct', wrong: 'Wrong', unanswered: 'Unanswered', ungraded: 'Not scored', flagged: 'Flagged' };
 
   const byId = new Map(QUESTIONS.map(q => [q.id, q]));
   const $ = id => document.getElementById(id);
 
-  let missed = new Set();   // ids answered wrong (scored questions only)
-  let saved = new Set();    // bookmarked ids
-  let session = null;       // { ids, answers, index, mode, finished }
-
-  // ---------- storage ----------
-
-  function loadProgress() {
-    try {
-      const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-      const known = ids => (Array.isArray(ids) ? ids : []).filter(id => byId.has(id));
-      missed = new Set(known(data.missed));
-      saved = new Set(known(data.saved));
-      const s = data.session;
-      const valid = s && Array.isArray(s.ids) && s.ids.length > 0 && s.ids.every(id => byId.has(id))
-        && Number.isInteger(s.index) && s.index >= 0 && s.index < s.ids.length;
-      session = valid ? s : null;
-    } catch (e) {
-      missed = new Set();
-      saved = new Set();
-      session = null;
-    }
-  }
-
-  function saveProgress() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ missed: [...missed], saved: [...saved], session }));
-    } catch (e) {
-      // Storage can be blocked (for example in a private window). The quiz still works for this visit.
-    }
-  }
+  let session = null;       // the test in progress or last finished (same object as Store.session())
+  let view = 'home';
+  let tick = null;
+  const openAnswers = new Set(); // browse cards with their answer showing
 
   // ---------- helpers ----------
 
@@ -814,50 +1143,178 @@ const QUESTIONS = [
     return a;
   }
 
-  function showPanel(name) {
-    ['setup', 'quiz', 'results'].forEach(p => { $(p).hidden = p !== name; });
-    window.scrollTo(0, 0);
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatTime(ms) {
+    const total = Math.floor(ms / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return h ? h + ':' + pad(m) + ':' + pad(s) : pad(m) + ':' + pad(s);
   }
+
+  function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
 
   function isScored(q) { return q.answer !== null; }
 
   function current() { return byId.get(session.ids[session.index]); }
 
-  // ---------- setup screen ----------
+  function statusOf(id) {
+    const s = Store.statsFor(id);
+    return s.last === 'wrong' ? 'missed' : s.last === 'right' ? 'correct' : 'new';
+  }
 
-  function fillSubjects() {
-    const select = $('subject');
-    select.append(new Option('All subjects (' + QUESTIONS.length + ')', 'all'));
-    SUBJECTS.forEach(name => {
-      const count = QUESTIONS.filter(q => q.subject === name).length;
-      select.append(new Option(name + ' (' + count + ')', name));
+  function statusLabel(id) {
+    return { missed: 'Last answer wrong', correct: 'Last answer right', new: 'Not seen yet' }[statusOf(id)];
+  }
+
+  function subjectStats(name) {
+    const qs = QUESTIONS.filter(q => q.subject === name);
+    let answered = 0, right = 0, wrong = 0;
+    qs.forEach(q => {
+      const s = Store.statsFor(q.id);
+      if (s.last) answered++;
+      right += s.right;
+      wrong += s.wrong;
+    });
+    return { total: qs.length, answered, right, wrong, accuracy: right + wrong ? Math.round(right / (right + wrong) * 100) : null };
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // ---------- navigation and theme ----------
+
+  function show(name) {
+    if (view === 'quiz' && name !== 'quiz') pauseTimer();
+    view = name;
+    VIEWS.forEach(v => { $(v).hidden = v !== name; });
+    document.querySelectorAll('.tabs button').forEach(b => {
+      if (b.dataset.nav === name) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+    if (name === 'home') renderHome();
+    if (name === 'browse') renderBrowse();
+    if (name === 'stats') renderStats();
+    if (name === 'quiz') resumeTimer();
+  }
+
+  function applyTheme(value) {
+    document.documentElement.dataset.theme = value;
+    $('theme').textContent = value === 'dark' ? 'Light mode' : 'Dark mode';
+  }
+
+  function initTheme() {
+    const saved = Store.theme();
+    const preferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    applyTheme(saved || preferred);
+  }
+
+  // ---------- home ----------
+
+  function fillSubjectSelects() {
+    [$('subject'), $('browse-subject')].forEach(select => {
+      select.replaceChildren();
+      select.append(new Option('All subjects (' + QUESTIONS.length + ')', 'all'));
+      SUBJECTS.forEach(s => {
+        const count = QUESTIONS.filter(q => q.subject === s.name).length;
+        select.append(new Option(s.name + ' (' + count + ')', s.name));
+      });
+    });
+  }
+
+  function renderHome() {
+    renderResume();
+    renderSubjectCards();
+    renderMockList();
+    updateSetup();
+  }
+
+  function renderResume() {
+    const box = $('resume-box');
+    const live = session && !session.finished;
+    box.hidden = !live;
+    if (!live) return;
+    $('resume-text').textContent = 'Test in progress: ' + Object.keys(session.answers).length
+      + ' of ' + session.ids.length + ' answered (' + formatTime(spentMs()) + ' so far).';
+  }
+
+  function renderSubjectCards() {
+    const wrap = $('subject-cards');
+    wrap.replaceChildren();
+    SUBJECTS.forEach(s => {
+      const st = subjectStats(s.name);
+      const pct = st.total ? Math.round(st.answered / st.total * 100) : 0;
+      const card = el('article', 'subject-card panel');
+      card.append(el('h2', null, s.name), el('p', 'muted small', s.blurb));
+
+      const meter = el('div', 'bar');
+      const fill = el('div');
+      fill.style.width = pct + '%';
+      meter.append(fill);
+      meter.setAttribute('aria-hidden', 'true');
+
+      const detail = el('p', 'small',
+        st.answered + ' of ' + st.total + ' answered'
+        + (st.accuracy === null ? '' : ', ' + st.accuracy + '% correct'));
+      const actions = el('div', 'button-row');
+      const practice = el('button', null, 'Practice');
+      practice.type = 'button';
+      practice.addEventListener('click', () => {
+        $('subject').value = s.name;
+        updateSetup();
+        $('setup-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      const mock = el('button', 'primary', 'Mock test');
+      mock.type = 'button';
+      mock.addEventListener('click', () => startMock(s));
+      actions.append(practice, mock);
+      card.append(meter, detail, actions);
+      wrap.append(card);
+    });
+  }
+
+  function renderMockList() {
+    const wrap = $('mock-list');
+    wrap.replaceChildren();
+    SUBJECTS.forEach(s => {
+      const last = Store.attempts.slice().reverse().find(a => a.kind === 'mock' && a.subject === s.name);
+      const row = el('div', 'mock-row');
+      const text = el('div');
+      text.append(el('strong', null, s.name), el('div', 'muted small',
+        plural(s.mock, 'question') + (last ? ', last score ' + Math.round(last.right / last.scored * 100) + '%' : '')));
+      const button = el('button', null, 'Start');
+      button.type = 'button';
+      button.addEventListener('click', () => startMock(s));
+      row.append(text, button);
+      wrap.append(row);
     });
   }
 
   function matchingQuestions() {
     const subject = $('subject').value;
     const which = $('pool').value;
-    const set = which === 'missed' ? missed : which === 'saved' ? saved : null;
-    return QUESTIONS.filter(q => (subject === 'all' || q.subject === subject) && (!set || set.has(q.id)));
+    return QUESTIONS.filter(q => {
+      if (subject !== 'all' && q.subject !== subject) return false;
+      if (which === 'missed') return statusOf(q.id) === 'missed';
+      if (which === 'new') return statusOf(q.id) === 'new';
+      if (which === 'saved') return Store.isSaved(q.id);
+      return true;
+    });
   }
 
   function updateSetup() {
     const total = matchingQuestions().length;
     $('custom').hidden = $('length').value !== 'custom';
-    $('match').textContent = total
-      ? total + ' question' + (total === 1 ? '' : 's') + ' match these settings.'
-      : 'No questions match these settings yet.';
+    $('match').textContent = total ? plural(total, 'question') + ' match these settings.' : 'No questions match these settings yet.';
     $('start').disabled = total === 0;
     $('study-all').disabled = total === 0;
   }
-
-  function updateStats() {
-    $('stat-total').textContent = QUESTIONS.length;
-    $('stat-missed').textContent = missed.size;
-    $('stat-saved').textContent = saved.size;
-  }
-
-  function setMessage(text) { $('setup-message').textContent = text; }
 
   function requestedCount(total) {
     const value = $('length').value;
@@ -866,38 +1323,78 @@ const QUESTIONS = [
     return Number.isInteger(n) && n >= 1 ? Math.min(n, total) : NaN;
   }
 
-  function startFromSetup(mode, useAll) {
-    const pool = matchingQuestions();
-    if (!pool.length) { setMessage('No questions match these settings yet.'); return; }
-    const n = useAll ? pool.length : requestedCount(pool.length);
-    if (Number.isNaN(n)) { setMessage('Enter a whole number of 1 or more.'); return; }
-    if (session && !session.finished && !confirm('Start a new test? This replaces the test in progress.')) return;
-    setMessage('');
-    const picked = $('shuffle').checked ? shuffled(pool) : pool;
-    begin(picked.slice(0, n).map(q => q.id), mode);
+  function confirmReplace() {
+    return !session || session.finished || confirm('Start a new test? This replaces the test in progress.');
   }
 
-  function showSetup() {
-    updateStats();
-    updateSetup();
-    const resumable = session && !session.finished;
-    $('resume').hidden = !resumable;
-    if (resumable) {
-      $('resume').textContent = 'Resume test (' + Object.keys(session.answers).length + ' of ' + session.ids.length + ' answered)';
-    }
-    showPanel('setup');
+  function startFromSetup(mode, useAll) {
+    const pool = matchingQuestions();
+    if (!pool.length) { setupMessage('No questions match these settings yet.'); return; }
+    const n = useAll ? pool.length : requestedCount(pool.length);
+    if (Number.isNaN(n)) { setupMessage('Enter a whole number of 1 or more.'); return; }
+    if (!confirmReplace()) return;
+    setupMessage('');
+    const picked = $('shuffle').checked ? shuffled(pool) : pool;
+    const subjectValue = $('subject').value;
+    begin({
+      ids: picked.slice(0, n).map(q => q.id),
+      mode,
+      kind: 'practice',
+      subject: subjectValue === 'all' ? 'All subjects' : subjectValue,
+    });
   }
+
+  function startMock(subject) {
+    if (!confirmReplace()) return;
+    const pool = QUESTIONS.filter(q => q.subject === subject.name);
+    begin({
+      ids: shuffled(pool).slice(0, subject.mock).map(q => q.id),
+      mode: 'exam',
+      kind: 'mock',
+      subject: subject.name,
+      passMark: PASS_MARK,
+    });
+  }
+
+  function setupMessage(text) { $('setup-message').textContent = text; }
 
   // ---------- quiz ----------
 
-  function begin(ids, mode) {
-    session = { ids, answers: {}, index: 0, mode, finished: false };
-    saveProgress();
+  function begin(fields) {
+    session = Object.assign({
+      answers: {}, flags: [], index: 0, finished: false, spent: 0, runStart: null,
+    }, fields);
+    Store.setSession(session);
+    show('quiz');
+  }
+
+  function spentMs() {
+    if (!session) return 0;
+    return (session.spent || 0) + (session.runStart ? Date.now() - session.runStart : 0);
+  }
+
+  function updateTimer() { $('timer').textContent = formatTime(spentMs()); }
+
+  function resumeTimer() {
+    if (!session || session.finished) return;
+    if (!session.runStart) session.runStart = Date.now();
+    clearInterval(tick);
+    tick = setInterval(updateTimer, 1000);
+    updateTimer();
     openQuiz();
   }
 
+  function pauseTimer() {
+    clearInterval(tick);
+    tick = null;
+    if (session && session.runStart) {
+      session.spent = spentMs();
+      session.runStart = null;
+      Store.setSession(session);
+    }
+  }
+
   function openQuiz() {
-    showPanel('quiz');
     render();
     $('question').focus();
   }
@@ -907,17 +1404,26 @@ const QUESTIONS = [
     const q = current();
     if (session.mode === 'study' && session.answers[q.id] !== undefined) return;
     session.answers[q.id] = i;
-    if (isScored(q)) {
-      if (i === q.answer) missed.delete(q.id);
-      else missed.add(q.id);
-    }
-    saveProgress();
+    if (session.mode === 'study' && isScored(q)) Store.recordAnswer(q.id, i === q.answer);
+    Store.setSession(session);
+    render();
+  }
+
+  function toggleFlag() {
+    const id = current().id;
+    session.flags = session.flags.includes(id) ? session.flags.filter(x => x !== id) : [...session.flags, id];
+    Store.setSession(session);
+    render();
+  }
+
+  function toggleBookmark() {
+    Store.toggleSaved(current().id);
     render();
   }
 
   function goTo(index) {
     session.index = index;
-    saveProgress();
+    Store.setSession(session);
     render();
   }
 
@@ -930,41 +1436,31 @@ const QUESTIONS = [
     if (session.index > 0) goTo(session.index - 1);
   }
 
-  function toggleBookmark() {
-    const id = current().id;
-    if (saved.has(id)) saved.delete(id);
-    else saved.add(id);
-    saveProgress();
-    render();
-  }
-
   function render() {
     const q = current();
     const total = session.ids.length;
     const answer = session.answers[q.id];
     const revealed = session.mode === 'study' && answer !== undefined;
+    const flagged = session.flags.includes(q.id);
+    const saved = Store.isSaved(q.id);
     const answeredCount = Object.keys(session.answers).length;
-    const isSaved = saved.has(q.id);
 
     $('position').textContent = 'Question ' + (session.index + 1) + ' of ' + total;
-    $('topic').textContent = q.subject + ', #' + q.number;
+    $('topic').textContent = q.subject + ', #' + q.number + (session.kind === 'mock' ? ', mock test' : '');
     $('progress').style.width = (answeredCount / total * 100) + '%';
     $('question').textContent = q.question;
-    $('bookmark').textContent = isSaved ? 'Bookmarked' : 'Bookmark';
-    $('bookmark').setAttribute('aria-pressed', String(isSaved));
+    $('flag').textContent = flagged ? 'Flagged' : 'Flag';
+    $('flag').setAttribute('aria-pressed', String(flagged));
+    $('bookmark').textContent = saved ? 'Bookmarked' : 'Bookmark';
+    $('bookmark').setAttribute('aria-pressed', String(saved));
+    updateTimer();
 
     const box = $('choices');
     box.replaceChildren();
     q.options.forEach((text, i) => {
-      const button = document.createElement('button');
+      const button = el('button', 'choice');
       button.type = 'button';
-      button.className = 'choice';
-      const letter = document.createElement('span');
-      letter.className = 'letter';
-      letter.textContent = LETTERS[i];
-      const label = document.createElement('span');
-      label.textContent = text;
-      button.append(letter, label);
+      button.append(el('span', 'letter', LETTERS[i]), el('span', null, text));
       if (answer === i) button.classList.add('selected');
       if (revealed && isScored(q)) {
         if (i === q.answer) button.classList.add('correct');
@@ -996,10 +1492,8 @@ const QUESTIONS = [
     const grid = $('grid');
     grid.replaceChildren();
     session.ids.forEach((id, i) => {
-      const dot = document.createElement('button');
+      const dot = el('button', 'dot', String(i + 1));
       dot.type = 'button';
-      dot.className = 'dot';
-      dot.textContent = i + 1;
       dot.setAttribute('aria-label', 'Go to question ' + (i + 1));
       const a = session.answers[id];
       const qq = byId.get(id);
@@ -1008,6 +1502,7 @@ const QUESTIONS = [
         dot.setAttribute('aria-current', 'step');
       }
       if (a !== undefined) dot.classList.add('answered');
+      if (session.flags.includes(id)) dot.classList.add('flagged');
       if (session.mode === 'study' && a !== undefined && isScored(qq)) {
         dot.classList.add(a === qq.answer ? 'right' : 'wrong');
       }
@@ -1019,15 +1514,36 @@ const QUESTIONS = [
   function finish() {
     if (!session) return;
     const left = session.ids.filter(id => session.answers[id] === undefined).length;
-    if (left && !confirm(left + ' unanswered question' + (left === 1 ? '' : 's') + '. Finish the test anyway?')) return;
+    if (left && !confirm(plural(left, 'unanswered question') + '. Finish the test anyway?')) return;
+    pauseTimer();
     session.finished = true;
-    saveProgress();
+
+    const scored = session.ids.map(id => byId.get(id)).filter(isScored);
+    const answered = scored.filter(q => session.answers[q.id] !== undefined);
+    const right = scored.filter(q => session.answers[q.id] === q.answer).length;
+    if (session.mode === 'exam') {
+      answered.forEach(q => Store.recordAnswer(q.id, session.answers[q.id] === q.answer));
+    }
+
+    const pct = scored.length ? Math.round(right / scored.length * 100) : null;
+    Store.addAttempt({
+      at: Date.now(),
+      subject: session.subject,
+      kind: session.kind,
+      total: session.ids.length,
+      scored: scored.length,
+      right,
+      seconds: Math.round(spentMs() / 1000),
+      passed: session.passMark ? pct !== null && pct >= session.passMark * 100 : null,
+    });
+    Store.setSession(session);
     showResults();
   }
 
   function saveAndExit() {
-    saveProgress();
-    showSetup();
+    pauseTimer();
+    Store.setSession(session);
+    show('home');
   }
 
   // ---------- results ----------
@@ -1037,10 +1553,22 @@ const QUESTIONS = [
     const scored = qs.filter(isScored);
     const right = scored.filter(q => session.answers[q.id] === q.answer).length;
     const ungraded = qs.length - scored.length;
+    const pct = scored.length ? Math.round(right / scored.length * 100) : null;
 
-    $('score').textContent = scored.length ? Math.round(right / scored.length * 100) + '%' : 'Not scored';
+    $('score').textContent = pct === null ? 'Not scored' : pct + '%';
     $('result-text').textContent = right + ' of ' + scored.length + ' scored questions correct'
-      + (ungraded ? '. ' + ungraded + ' had no marked answer.' : '.');
+      + (ungraded ? '. ' + plural(ungraded, 'question') + ' had no marked answer.' : '.');
+    $('result-time').textContent = 'Time: ' + formatTime(spentMs());
+
+    const verdict = $('verdict');
+    if (session.passMark && pct !== null) {
+      verdict.hidden = false;
+      const passed = pct >= session.passMark * 100;
+      verdict.textContent = passed ? 'Pass. You reached the 80% pass mark.' : 'Not yet. You need 80% to pass.';
+      verdict.className = 'verdict ' + (passed ? 'good' : 'bad');
+    } else {
+      verdict.hidden = true;
+    }
 
     const toPractice = scored.filter(q => session.answers[q.id] !== q.answer);
     $('retry').disabled = toPractice.length === 0;
@@ -1048,22 +1576,17 @@ const QUESTIONS = [
 
     const breakdown = $('breakdown');
     breakdown.replaceChildren();
-    SUBJECTS.forEach(name => {
-      const part = scored.filter(q => q.subject === name);
+    SUBJECTS.forEach(s => {
+      const part = scored.filter(q => q.subject === s.name);
       if (!part.length) return;
       const ok = part.filter(q => session.answers[q.id] === q.answer).length;
-      const row = document.createElement('div');
-      row.className = 'row';
-      const label = document.createElement('span');
-      label.textContent = name;
-      const value = document.createElement('strong');
-      value.textContent = ok + ' / ' + part.length;
-      row.append(label, value);
+      const row = el('div', 'row');
+      row.append(el('span', null, s.name), el('strong', null, ok + ' / ' + part.length));
       breakdown.append(row);
     });
 
     renderReview();
-    showPanel('results');
+    show('results');
   }
 
   function renderReview() {
@@ -1077,65 +1600,218 @@ const QUESTIONS = [
       const status = a === undefined ? 'unanswered'
         : !isScored(q) ? 'ungraded'
         : a === q.answer ? 'right' : 'wrong';
-      if (filter !== 'all' && filter !== status) return;
+      const flagged = session.flags.includes(q.id);
+      if (filter === 'flagged' ? !flagged : filter !== 'all' && filter !== status) return;
       shown++;
 
-      const card = document.createElement('article');
-      card.className = 'review-item ' + status;
-
-      const meta = document.createElement('p');
-      meta.className = 'muted small';
-      meta.textContent = q.subject + ', #' + q.number + ', ' + STATUS_LABEL[status];
-
-      const heading = document.createElement('h3');
-      heading.textContent = q.question;
-
-      const yours = document.createElement('p');
-      yours.textContent = 'Your answer: ' + (a === undefined ? 'none' : LETTERS[a] + '. ' + q.options[a]);
-
-      card.append(meta, heading, yours);
-      if (isScored(q)) {
-        const correct = document.createElement('p');
-        correct.textContent = 'Correct answer: ' + LETTERS[q.answer] + '. ' + q.options[q.answer];
-        card.append(correct);
-      } else {
-        const note = document.createElement('p');
-        note.className = 'muted small';
-        note.textContent = 'No answer is marked in the study material, so this question is not scored.';
-        card.append(note);
-      }
+      const card = el('article', 'review-item ' + status);
+      card.append(el('p', 'muted small', q.subject + ', #' + q.number + ', ' + REVIEW_LABEL[status] + (flagged ? ', flagged' : '')));
+      card.append(el('h3', null, q.question));
+      card.append(el('p', null, 'Your answer: ' + (a === undefined ? 'none' : LETTERS[a] + '. ' + q.options[a])));
+      card.append(el('p', null, isScored(q)
+        ? 'Correct answer: ' + LETTERS[q.answer] + '. ' + q.options[q.answer]
+        : 'No answer is marked in the study material, so this question is not scored.'));
       list.append(card);
     });
 
-    if (!shown) {
-      const empty = document.createElement('p');
-      empty.className = 'muted';
-      empty.textContent = 'Nothing matches this filter.';
-      list.append(empty);
-    }
+    if (!shown) list.append(el('p', 'muted', 'Nothing matches this filter.'));
+  }
+
+  // ---------- browse ----------
+
+  function renderBrowse() {
+    const term = $('search').value.trim().toLowerCase();
+    const subject = $('browse-subject').value;
+    const status = $('browse-status').value;
+    const list = $('browse-list');
+    list.replaceChildren();
+
+    const matches = QUESTIONS.filter(q => {
+      if (subject !== 'all' && q.subject !== subject) return false;
+      if (status === 'saved' && !Store.isSaved(q.id)) return false;
+      if (status !== 'all' && status !== 'saved' && statusOf(q.id) !== status) return false;
+      if (!term) return true;
+      return (q.question + ' ' + q.options.join(' ')).toLowerCase().includes(term);
+    });
+
+    $('browse-count').textContent = plural(matches.length, 'question') + ' shown.';
+    matches.forEach(q => list.append(browseCard(q)));
+    if (!matches.length) list.append(el('p', 'muted', 'No questions match. Try another search or filter.'));
+  }
+
+  function browseCard(q) {
+    const card = el('article', 'browse-card panel');
+    const head = el('div', 'browse-head');
+    head.append(el('span', 'muted small', q.subject + ', #' + q.number), el('span', 'badge ' + statusOf(q.id), statusLabel(q.id)));
+    card.append(head, el('h3', null, q.question));
+
+    const answerBox = el('div', 'browse-answer');
+    answerBox.hidden = !openAnswers.has(q.id);
+    q.options.forEach((text, i) => {
+      const line = el('p', 'browse-option' + (isScored(q) && i === q.answer ? ' correct' : ''));
+      line.textContent = LETTERS[i] + '. ' + text;
+      answerBox.append(line);
+    });
+    if (!isScored(q)) answerBox.append(el('p', 'muted small', 'No answer is marked in the study material.'));
+
+    const actions = el('div', 'button-row');
+    const toggle = el('button', null, openAnswers.has(q.id) ? 'Hide answers' : 'Show answers');
+    toggle.type = 'button';
+    toggle.addEventListener('click', () => {
+      if (openAnswers.has(q.id)) openAnswers.delete(q.id);
+      else openAnswers.add(q.id);
+      renderBrowse();
+    });
+    const bookmark = el('button', null, Store.isSaved(q.id) ? 'Bookmarked' : 'Bookmark');
+    bookmark.type = 'button';
+    bookmark.addEventListener('click', () => { Store.toggleSaved(q.id); renderBrowse(); });
+    const practice = el('button', null, 'Practice this');
+    practice.type = 'button';
+    practice.addEventListener('click', () => {
+      if (!confirmReplace()) return;
+      begin({ ids: [q.id], mode: 'study', kind: 'practice', subject: q.subject });
+    });
+    actions.append(toggle, bookmark, practice);
+    card.append(answerBox, actions);
+    return card;
+  }
+
+  // ---------- progress and backup ----------
+
+  function renderStats() {
+    const answeredTotal = QUESTIONS.filter(q => Store.statsFor(q.id).last).length;
+    let right = 0, wrong = 0;
+    QUESTIONS.forEach(q => { const s = Store.statsFor(q.id); right += s.right; wrong += s.wrong; });
+    const attempts = Store.attempts;
+    const mocks = attempts.filter(a => a.kind === 'mock');
+
+    const cards = $('stat-cards');
+    cards.replaceChildren();
+    [
+      [answeredTotal + ' / ' + QUESTIONS.length, 'questions answered'],
+      [right + wrong ? Math.round(right / (right + wrong) * 100) + '%' : 'None yet', 'correct, all time'],
+      [String(attempts.length), 'tests finished'],
+      [mocks.filter(a => a.passed).length + ' / ' + mocks.length, 'mock tests passed'],
+      [String(Store.savedIds.length), 'bookmarked'],
+    ].forEach(([value, label]) => {
+      const box = el('div', 'stat-card panel');
+      box.append(el('strong', null, value), el('span', 'muted small', label));
+      cards.append(box);
+    });
+
+    const table = $('subject-table');
+    table.replaceChildren();
+    SUBJECTS.forEach(s => {
+      const st = subjectStats(s.name);
+      const row = el('div', 'subject-row');
+      const pct = st.total ? Math.round(st.answered / st.total * 100) : 0;
+      const bar = el('div', 'bar');
+      const fill = el('div');
+      fill.style.width = pct + '%';
+      bar.append(fill);
+      row.append(
+        el('strong', null, s.name),
+        el('span', 'muted small', st.answered + ' of ' + st.total + ' answered'),
+        el('span', 'small', st.accuracy === null ? 'No answers yet' : st.accuracy + '% correct'),
+        bar,
+      );
+      table.append(row);
+    });
+
+    const missed = $('most-missed');
+    missed.replaceChildren();
+    const top = QUESTIONS
+      .map(q => ({ q, wrong: Store.statsFor(q.id).wrong }))
+      .filter(x => x.wrong > 0)
+      .sort((a, b) => b.wrong - a.wrong)
+      .slice(0, 10);
+    if (!top.length) missed.append(el('p', 'muted', 'No misses yet. Keep practising.'));
+    top.forEach(({ q, wrong }) => {
+      const row = el('p', 'small');
+      row.append(el('span', 'muted', plural(wrong, 'miss') + ': '), document.createTextNode(q.question));
+      missed.append(row);
+    });
+
+    const recent = $('recent');
+    recent.replaceChildren();
+    if (!attempts.length) recent.append(el('p', 'muted', 'No finished tests yet.'));
+    attempts.slice().reverse().slice(0, 10).forEach(a => {
+      const pct = a.scored ? Math.round(a.right / a.scored * 100) : null;
+      const row = el('div', 'recent-row');
+      const when = new Date(a.at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      const kind = a.kind === 'mock' ? 'Mock test' : 'Practice';
+      const outcome = a.passed === null || a.passed === undefined ? '' : a.passed ? ', passed' : ', not yet';
+      row.append(
+        el('span', 'muted small', when),
+        el('span', null, kind + ', ' + a.subject),
+        el('strong', null, (pct === null ? 'Not scored' : pct + '%') + outcome),
+      );
+      recent.append(row);
+    });
+  }
+
+  function setDataMessage(text) { $('data-message').textContent = text; }
+
+  function exportBackup() {
+    const blob = new Blob([Store.exportText()], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = el('a');
+    link.href = url;
+    link.download = 'cdl-quiz-progress-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setDataMessage('Backup saved. Keep the file somewhere safe.');
+  }
+
+  function importBackup(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        Store.importText(String(reader.result));
+        session = Store.session();
+        renderStats();
+        setDataMessage('Backup loaded. Your progress is restored.');
+      } catch (e) {
+        setDataMessage('That file could not be loaded. ' + (e.message || 'Check that it is a backup from this quiz.'));
+      }
+      $('import').value = '';
+    };
+    reader.onerror = () => setDataMessage('That file could not be read.');
+    reader.readAsText(file);
+  }
+
+  function resetAll() {
+    if (!confirm('Erase all progress, bookmarks, mock results and the test in progress? This cannot be undone.')) return;
+    pauseTimer();
+    Store.reset();
+    session = null;
+    renderStats();
+    setDataMessage('All progress was erased.');
   }
 
   // ---------- events ----------
+
+  document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => show(b.dataset.nav)));
+  $('theme').addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    Store.setTheme(next);
+    applyTheme(next);
+  });
 
   $('subject').addEventListener('change', updateSetup);
   $('pool').addEventListener('change', updateSetup);
   $('length').addEventListener('change', updateSetup);
   $('custom').addEventListener('input', updateSetup);
-  $('start').addEventListener('click', () => startFromSetup($('mode').value, false));
+  $('setup-form').addEventListener('submit', e => { e.preventDefault(); startFromSetup($('mode').value, false); });
   $('study-all').addEventListener('click', () => startFromSetup('study', true));
-  $('resume').addEventListener('click', () => { if (session && !session.finished) openQuiz(); });
-  $('reset').addEventListener('click', () => {
-    if (!confirm('Erase your missed questions, bookmarks and the test in progress? This cannot be undone.')) return;
-    missed.clear();
-    saved.clear();
-    session = null;
-    saveProgress();
-    showSetup();
-    setMessage('Your progress was reset.');
-  });
+  $('resume').addEventListener('click', () => { if (session && !session.finished) show('quiz'); });
 
   $('prev').addEventListener('click', previous);
   $('next').addEventListener('click', next);
+  $('flag').addEventListener('click', toggleFlag);
   $('bookmark').addEventListener('click', toggleBookmark);
   $('finish').addEventListener('click', finish);
   $('exit').addEventListener('click', saveAndExit);
@@ -1145,29 +1821,41 @@ const QUESTIONS = [
       const q = byId.get(id);
       return isScored(q) && session.answers[id] !== q.answer;
     });
-    begin($('shuffle').checked ? shuffled(ids) : ids, 'study');
+    begin({ ids: $('shuffle').checked ? shuffled(ids) : ids, mode: 'study', kind: 'practice', subject: session.subject });
+    show('quiz');
   });
-  $('back-setup').addEventListener('click', showSetup);
+  $('home-from-results').addEventListener('click', () => show('home'));
   $('review-filter').addEventListener('change', renderReview);
 
+  $('search').addEventListener('input', renderBrowse);
+  $('browse-subject').addEventListener('change', renderBrowse);
+  $('browse-status').addEventListener('change', renderBrowse);
+
+  $('export').addEventListener('click', exportBackup);
+  $('import').addEventListener('change', e => importBackup(e.target.files[0]));
+  $('reset').addEventListener('click', resetAll);
+
   document.addEventListener('keydown', e => {
-    if (!session || session.finished || $('quiz').hidden) return;
+    if (view !== 'quiz' || !session || session.finished) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.target instanceof Element && e.target.closest('input, select, textarea')) return;
     switch (e.key) {
       case '1': case '2': case '3': choose(Number(e.key) - 1); break;
       case 'ArrowRight': next(); break;
       case 'ArrowLeft': previous(); break;
+      case 'f': case 'F': toggleFlag(); break;
       case 's': case 'S': toggleBookmark(); break;
     }
   });
 
   // ---------- start ----------
 
-  fillSubjects();
-  loadProgress();
-  showSetup();
-  updateStats();
+  Store.load();
+  session = Store.session();
+  if (session && !session.finished) session.runStart = null; // time while the page was closed is not counted
+  fillSubjectSelects();
+  initTheme();
+  show('home');
 })();
 </script>
 </body>
